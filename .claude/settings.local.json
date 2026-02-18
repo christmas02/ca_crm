@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer:*)",
+      "Bash(php:*)",
+      "Bash(npm:*)",
+      "Bash(/Applications/XAMPP/bin/mysql:*)",
+      "Bash(/Applications/XAMPP/xamppfiles/bin/mysql:*)"
+    ]
+  }
+}
