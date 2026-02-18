@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "dev-antler-418219",
+  "private_key_id": "3b3887e9ff2566ba0239ce77746b18cea5e285c0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCWDjgZW6Nezg2n\n/awF3d8xErAHHVlrwcebtZcUQMJqT9r+jFgnntoQW06GPCfj/ewNzGE4qoWseVsu\n/yy81SM6/jD8k3if/NiBqjgJGe1bYCgVYwSAesYfM1qC6+V903V31ld6mypw4pkP\nHn23n2pyPiZrf/LzrAk2A8jjZEwxD/MpRAp3upP0mjn/NBMs3ExW5gQcpMH1Y/zn\n9BmmxZCvYB65M3i6c/Q/l5r5Z8in/HPdbnw+mT2g1gJk9Cu3nSasQ6myuYArSS+n\n2y6JNulxryQx5+fqWY590HMHrlJ3qmvTnGt9Pptv4SK8O5ytcuomt/AdgK4/CDXl\nl73Sa5JZAgMBAAECggEAAfbELbLJF9nPDHKRwI7nl6sUsjckXzhtTiCpjkqNsNoE\nNf4svjICTSIAzFl3tTBy2ThiUl1K/BenhZ0x3vPULva6OegNNVzYEZRigN39wQso\nYyVFXxAcTTa9GccQHR46JJwhz3k97DXPBodh4lgcCsw88P2+9oj7IuGYTL+YjrDP\nXgDK2gw3DtZZqkb2BxKrfE+Dn23vf465UjxlQ/y5AJBaSQjAGNcqWzGo4bHDEFeb\n6HJk1RTEeQ4ejVYyR0C3kbbLaTBsrWT4UZ9q/0HPHpph7mKc+JqwCuo9tqlqJ5Kb\nPTvBDtWm7HxHDApGoa9xf0AdthkZYgjCI9AfCj5XLQKBgQDK0rtIj38NKnY1jDuJ\nEn+j8fBovEoWigXEnTi6YLbEMFZUVLJOmmmaiWEAiU6HLen3MFJ0wAxMn/LYYTGG\n/Aj3RKZB9AbDpWZeSY/mCkv/S1VVfiVPtd+W2ZJFlQtLBJrSewcgo6gcM4p4wg9y\n9+5aOUOnXoZjgu4I+eZ3wquj3QKBgQC9ZchMEKc8wc+z+jVCPV8aQslOZEqTGO2W\n1vDxxovaz6obKJQ5/aPFuEw3/b9X+qej1PASsaGX5JTJoHMlO54WWuWE/5Yy/Tlh\nfpsVjpHc0fZDK0c55yEO9w3dMTyjnrTsvMqhAJ9yu/FUJrH4Bx97DW4HK9I64Hi7\n3AUu+LrOrQKBgQChb8JqKu1xyU51qLzqibLXB4fXladS8WFN8eZpUvmmhuLwFMoo\nDnfn7VksWB4NMtp7ShcXnpUrmFRvLk2Bp7JrPlUnQdjweQJWIi9LZv6+oXO2rMV+\nAMGLDHqEr/FhMLUau5ocvKbea5fYLn6lf/pUDihvW6mUI27b7i0nPefocQKBgQCt\nU6BiPDtQVu4F/00OOav3FHe1zgKRa5bDHCGUoecLcFB0WkaMa5qdL3RRKV8a3MDe\nJdkuwnDn2MBxZOz7ffvG6ZhyhpSmRSdmGb9Dkx3ZwCxmfAzK6MJQN7fwXUbpViyt\nGnk1rqQ9E9Je+KqWGa6tpjSzS18xkovrIAd+XRJYYQKBgEUHhpC8drqokBmHXo5A\nWOH0wEtyIw8dCV9NTpl/6BJreJIjw3G3pubiG/T6j07LOqGeOzEAgLAz5L+qViNK\nK4DVEwMB0SXmifqIiV3jIEAtpwo8dSPsffb0Q4jRjED+zT0pVHxLWp46bcwLBA10\njtRe0+DIW/8OZ4ob74iByzlM\n-----END PRIVATE KEY-----\n",
+  "client_email": "google-vision-txtdetect@dev-antler-418219.iam.gserviceaccount.com",
+  "client_id": "108334799121059465818",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/google-vision-txtdetect%40dev-antler-418219.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
