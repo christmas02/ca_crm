@@ -64,11 +64,25 @@ class OpportunityController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'source' => 'nullable|string|max:255',
+            'canal' => 'nullable|string|max:255',
+            'vehicle_registration' => 'nullable|string|max:255',
+            'insurance_expiration_date' => 'nullable|date',
+            'prospection_location' => 'nullable|string|max:255',
+            'gray_card_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'attestation_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $validated['created_by'] = $request->user()->id;
-        $validated['status_id'] = Status::where('slug', 'nouveau')->first()->id;
+        $validated['status_id'] = Status::where('slug', 'nouvelle')->first()->id;
         $validated['team_id'] = $request->user()->team_id;
+
+        // Handle file uploads
+        if ($request->hasFile('gray_card_path')) {
+            $validated['gray_card_path'] = $request->file('gray_card_path')->store('documents/gray_cards', 'public');
+        }
+        if ($request->hasFile('attestation_path')) {
+            $validated['attestation_path'] = $request->file('attestation_path')->store('documents/attestations', 'public');
+        }
 
         Opportunity::create($validated);
 
@@ -110,7 +124,27 @@ class OpportunityController extends Controller
             'description' => 'nullable|string',
             'source' => 'nullable|string|max:255',
             'client_id' => 'required|exists:clients,id',
+            'canal' => 'nullable|string|max:255',
+            'vehicle_registration' => 'nullable|string|max:255',
+            'insurance_expiration_date' => 'nullable|date',
+            'prospection_location' => 'nullable|string|max:255',
+            'gray_card_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'attestation_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
+
+        // Handle file uploads
+        if ($request->hasFile('gray_card_path')) {
+            if ($opportunity->gray_card_path) {
+                \Storage::disk('public')->delete($opportunity->gray_card_path);
+            }
+            $validated['gray_card_path'] = $request->file('gray_card_path')->store('documents/gray_cards', 'public');
+        }
+        if ($request->hasFile('attestation_path')) {
+            if ($opportunity->attestation_path) {
+                \Storage::disk('public')->delete($opportunity->attestation_path);
+            }
+            $validated['attestation_path'] = $request->file('attestation_path')->store('documents/attestations', 'public');
+        }
 
         $opportunity->update($validated);
 

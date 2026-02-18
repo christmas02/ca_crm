@@ -12,6 +12,8 @@ class Opportunity extends Model
     protected $fillable = [
         'client_id', 'created_by', 'assigned_to', 'status_id',
         'team_id', 'title', 'description', 'source',
+        'canal', 'vehicle_registration', 'insurance_expiration_date',
+        'prospection_location', 'gray_card_path', 'attestation_path',
     ];
 
     public function client()

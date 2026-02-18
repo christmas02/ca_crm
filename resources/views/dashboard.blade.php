@@ -1,4 +1,4 @@
-<x-app-layout>
+ <x-app-layout>
     <x-slot name="header">Tableau de bord</x-slot>
 
     {{-- Status Cards --}}
@@ -58,9 +58,15 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $opp->client->full_name }}</td>
                         <td class="px-6 py-4 text-sm">
+                            @if($opp->status)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: {{ $opp->status->color }}">
                                 {{ $opp->status->name }}
                             </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: #6b7280">
+                                Non assigné
+                            </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $opp->assignee->name ?? '—' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $opp->created_at->format('d/m/Y') }}</td>
@@ -98,9 +104,15 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $opp->client->full_name }}</td>
                         <td class="px-6 py-4 text-sm">
+                            @if($opp->status)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: {{ $opp->status->color }}">
                                 {{ $opp->status->name }}
                             </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: #6b7280">
+                                Non assigné
+                            </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $opp->created_at->format('d/m/Y') }}</td>
                     </tr>
@@ -143,9 +155,15 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $opp->client->full_name }}</td>
                         <td class="px-6 py-4 text-sm">
+                            @if($opp->status)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: {{ $opp->status->color }}">
                                 {{ $opp->status->name }}
                             </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: #6b7280">
+                                Non assigné
+                            </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $opp->assignee->name ?? '—' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $opp->created_at->format('d/m/Y') }}</td>

@@ -22,6 +22,8 @@ class OpportunitySeeder extends Seeder
         $statuses = Status::orderBy('order')->get();
 
         $sources = ['Téléphone', 'Email', 'Site web', 'Recommandation', 'Salon', 'Porte-à-porte'];
+        $canals = ['Appel téléphonique', 'Email direct', 'Porte-à-porte', 'Salon auto', 'Web', 'Recommandation'];
+        $locations = ['Paris 15e', 'Lyon Presqu\'île', 'Marseille Centre', 'Bordeaux', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg'];
         $titles = [
             'Assurance Auto', 'Assurance Habitation', 'Assurance Vie',
             'Mutuelle Santé', 'Assurance Pro', 'Prévoyance',
@@ -47,6 +49,12 @@ class OpportunitySeeder extends Seeder
                 'title' => fake()->randomElement($titles) . ' - ' . fake()->company(),
                 'description' => fake()->paragraph(),
                 'source' => fake()->randomElement($sources),
+                'canal' => fake()->randomElement($canals),
+                'vehicle_registration' => strtoupper(fake()->bothify('??-###-??')),
+                'insurance_expiration_date' => fake()->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
+                'prospection_location' => fake()->randomElement($locations),
+                'gray_card_path' => fake()->boolean(70) ? 'documents/carte-grise-' . $i . '.pdf' : null,
+                'attestation_path' => fake()->boolean(60) ? 'documents/attestation-' . $i . '.pdf' : null,
             ]);
 
             // Add assignment history if assigned

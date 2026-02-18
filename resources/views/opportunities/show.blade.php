@@ -6,9 +6,15 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between mb-4">
+                    @if($opportunity->status)
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white" style="background-color: {{ $opportunity->status->color }}">
                         {{ $opportunity->status->name }}
                     </span>
+                    @else
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white" style="background-color: #6b7280">
+                        Non assigné
+                    </span>
+                    @endif
                     <div class="flex gap-2">
                         @can('update', $opportunity)
                         <a href="{{ route('opportunities.edit', $opportunity) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200">Modifier</a>
@@ -31,6 +37,10 @@
                         <dd class="mt-1">{{ $opportunity->source ?? '—' }}</dd>
                     </div>
                     <div>
+                        <dt class="font-medium text-gray-500">Canal</dt>
+                        <dd class="mt-1">{{ $opportunity->canal ?? '—' }}</dd>
+                    </div>
+                    <div>
                         <dt class="font-medium text-gray-500">Créé par</dt>
                         <dd class="mt-1">{{ $opportunity->creator->name }}</dd>
                     </div>
@@ -46,7 +56,44 @@
                         <dt class="font-medium text-gray-500">Date de création</dt>
                         <dd class="mt-1">{{ $opportunity->created_at->format('d/m/Y H:i') }}</dd>
                     </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">Immatriculation véhicule</dt>
+                        <dd class="mt-1">{{ $opportunity->vehicle_registration ?? '—' }}</dd>
+                    </div>
                 </dl>
+
+                {{-- Vehicle & Location Info --}}
+                <div class="mt-4 pt-4 border-t grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <dt class="font-medium text-gray-500">Date d'échéance assurance</dt>
+                        <dd class="mt-1">{{ $opportunity->insurance_expiration_date ? \Carbon\Carbon::parse($opportunity->insurance_expiration_date)->format('d/m/Y') : '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">Lieu de prospection</dt>
+                        <dd class="mt-1">{{ $opportunity->prospection_location ?? '—' }}</dd>
+                    </div>
+                </div>
+
+                {{-- Documents --}}
+                @if($opportunity->gray_card_path || $opportunity->attestation_path)
+                <div class="mt-4 pt-4 border-t">
+                    <h4 class="text-sm font-medium text-gray-500 mb-3">Documents</h4>
+                    <div class="space-y-2">
+                        @if($opportunity->gray_card_path)
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Carte grise</span>
+                            <a href="{{ asset('storage/' . $opportunity->gray_card_path) }}" target="_blank" class="text-indigo-600 hover:underline text-xs">Télécharger</a>
+                        </div>
+                        @endif
+                        @if($opportunity->attestation_path)
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Attestation</span>
+                            <a href="{{ asset('storage/' . $opportunity->attestation_path) }}" target="_blank" class="text-indigo-600 hover:underline text-xs">Télécharger</a>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
                 @if($opportunity->description)
                 <div class="mt-4 pt-4 border-t">
                     <h4 class="text-sm font-medium text-gray-500">Description</h4>
