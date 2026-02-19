@@ -23,15 +23,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Opportunities
+    Route::get('opportunities/new', [OpportunityController::class, 'listNewOpportunities'])->name('opportunities.new');
     Route::resource('opportunities', OpportunityController::class);
-    Route::post('opportunities/{opportunity}/assign', [OpportunityController::class, 'assign'])->name('opportunities.assign');
+    Route::post('opportunities/{opportunity}/assign', [OpportunityController::class, 'assign'])->name('opportunities.ass ign');
     Route::post('opportunities/{opportunity}/status', [OpportunityController::class, 'changeStatus'])->name('opportunities.change-status');
+    Route::post('opportunities/bulk/assign', [OpportunityController::class, 'bulkAssign'])->name('opportunities.bulkAssign');
+
 
     // Comments
     Route::post('opportunities/{opportunity}/comments', [CommentController::class, 'store'])->name('comments.store');
 
-    // Clients
-    Route::resource('clients', ClientController::class);
+    // Clients (opportunités gagnées)
+    Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
+    Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
 
     // Admin only routes
     Route::middleware(['role:admin'])->group(function () {

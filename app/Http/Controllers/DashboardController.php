@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Status;
 use App\Models\User;
@@ -20,7 +19,6 @@ class DashboardController extends Controller
         if ($user->isAdmin() || $user->isLead()) {
             $query = Opportunity::query();
 
-            // Lead sees only their team
             if ($user->isLead()) {
                 $query->where('team_id', $user->team_id);
             }
@@ -32,17 +30,20 @@ class DashboardController extends Controller
                 }
             }])->orderBy('order')->get();
             $data['recentOpportunities'] = (clone $query)
-                ->with(['client', 'status', 'assignee', 'creator'])
+                ->with(['status', 'assignee', 'creator'])
                 ->latest()
                 ->take(10)
                 ->get();
-            $data['totalClients'] = Client::count();
+            $gagneStatus = Status::where('slug', 'gagne')->first();
+            $data['totalClients'] = $gagneStatus
+                ? (clone $query)->where('status_id', $gagneStatus->id)->count()
+                : 0;
             $data['totalUsers'] = $user->isAdmin() ? User::count() : User::where('team_id', $user->team_id)->count();
         }
 
         if ($user->isAgentConseil()) {
             $data['assignedOpportunities'] = Opportunity::where('assigned_to', $user->id)
-                ->with(['client', 'status'])
+                ->with(['status'])
                 ->latest()
                 ->get();
             $data['statusCounts'] = Status::withCount(['opportunities' => function ($q) use ($user) {
@@ -52,7 +53,7 @@ class DashboardController extends Controller
 
         if ($user->isAgentTerrain()) {
             $data['createdOpportunities'] = Opportunity::where('created_by', $user->id)
-                ->with(['client', 'status', 'assignee'])
+                ->with(['status', 'assignee'])
                 ->latest()
                 ->get();
             $data['statusCounts'] = Status::withCount(['opportunities' => function ($q) use ($user) {

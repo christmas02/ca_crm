@@ -179,3 +179,101 @@ resources/views/
 routes/
 └── web.php (remplacé)
 ```
+
+---
+
+## Session 2 — 18/02/2026 — Alignement sur le schéma `prospection_clients`
+
+### Modifications effectuées :
+
+#### Migration `opportunities` refaite
+La migration a été reconstruite pour correspondre au schéma de la table `prospection_clients` existante. Colonnes ajoutées :
+
+| Colonne | Type | Description |
+|---------|------|-------------|
+| `observation` | text | Remplace `description` |
+| `canal` | string | Moyen d'arrivée (Appel, Email, Porte-à-porte...) |
+| `telephone2` | string | Téléphone secondaire |
+| `plaque_immatriculation` | string | Plaque du véhicule |
+| `echeance` | datetime | Date d'échéance assurance |
+| `lieuprospection` | string | Lieu de prospection |
+| `assureur_actuel` | string | Assureur actuel du prospect |
+| `periode_souscription` | integer | Durée en mois |
+| `montant_souscription` | integer | Montant en FCFA |
+| `isasap` | string | Urgence (oui/non) |
+| `urlcarte_grise_terrain` | string | Carte grise uploadée par terrain |
+| `url_attestationassurance_terrain` | string | Attestation uploadée par terrain |
+| `urlcarte_grise` | string | Carte grise back-office |
+| `url_attestationassurance` | string | Attestation back-office |
+| `statut_discours` | string | Validé / En attente / Rejeté |
+| `statut_carte_grise` | string | Reçu / Manquant / En attente |
+| `statut_attestation` | string | Reçu / Manquant / En attente |
+| `author_doublon_check` | integer | ID vérificateur doublon |
+| `doublon_check` | boolean | Flag doublon |
+| `date_auth_doublon` | datetime | Date autorisation doublon |
+| `isvisible` | integer | Visibilité (défaut 1) |
+
+#### Statuts mis à jour
+Nouvelle, Rendez-vous, Poursuivre, Gagné, Perdus, Reporter
+
+#### Fichiers modifiés
+- `database/migrations/2024_01_01_000006_create_opportunities_table.php` — refait
+- `app/Models/Opportunity.php` — fillable + casts mis à jour
+- `database/seeders/OpportunitySeeder.php` — données avec nouveaux champs
+- `app/Http/Controllers/OpportunityController.php` — validation et upload adaptés
+- `resources/views/opportunities/create.blade.php` — tous les nouveaux champs
+- `resources/views/opportunities/edit.blade.php` — tous les champs + documents terrain/BO
+- `resources/views/opportunities/show.blade.php` — affichage complet
+
+#### Migrations supprimées (conflits)
+- `2026_02_18_160902_update_statuses_labels_and_colors.php`
+- `2026_02_18_170137_add_fields_to_opportunities_table.php`
+
+---
+
+## Session 3 — 18/02/2026 — Création automatique des clients depuis opportunités gagnées
+
+### Règle métier
+Les clients **ne sont pas créés manuellement**. Un client est **automatiquement créé** lorsqu'une opportunité passe au statut **"Gagné"**. Les informations du prospect (nom, prénoms, téléphone, etc.) sont récupérées de l'opportunité pour créer le client. Si un client avec le même téléphone existe déjà, pas de doublon.
+
+### Ce qui a été fait :
+
+#### Table `clients` recréée
+Migration `2024_01_01_000004_create_clients_table.php` avec les champs :
+- `nom`, `prenoms`, `telephone`, `telephone2`
+- `plaque_immatriculation`, `assureur_actuel`, `lieuprospection`
+
+#### Colonne `client_id` ajoutée à `opportunities`
+- FK nullable vers `clients`, remplie automatiquement quand statut = "Gagné"
+
+#### Modèle `Client` recréé
+- `app/Models/Client.php` — fillable, `opportunities()` hasMany, `getFullNameAttribute()` accessor
+
+#### Logique auto-création dans `OpportunityController::changeStatus()`
+```php
+if ($newStatus->slug === 'gagne' && !$opportunity->client_id) {
+    $client = Client::firstOrCreate(
+        ['telephone' => $opportunity->telephone],
+        ['nom' => ..., 'prenoms' => ..., ...]
+    );
+    $opportunity->update(['client_id' => $client->id]);
+}
+```
+
+#### ClientController (lecture seule)
+- `index()` — liste des clients réels avec recherche et pagination
+- `show()` — fiche client avec ses opportunités liées
+- Pas de create/store/edit/update/destroy (clients créés automatiquement)
+
+#### Seeder mis à jour
+- `OpportunitySeeder` crée automatiquement des clients pour les opportunités avec statut "Gagné"
+
+#### Vues
+- **clients/index.blade.php** — tableau des clients (nom, tél, plaque, assureur, lieu, nb opportunités, date)
+- **clients/show.blade.php** — fiche client + tableau des opportunités liées avec statut, agent, créateur
+
+#### Routes (inchangées, lecture seule)
+```php
+Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
+Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+```

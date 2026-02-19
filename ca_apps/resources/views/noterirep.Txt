@@ -1,5 +1,0 @@
-nom de l'auteur
-titre
-resume
-piece jointe
-reference ( annee num de page et auteur )
