@@ -17,8 +17,12 @@
                 <label>Statut</label>
                 <select name="status_id">
                     <option value="">Tous</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                    @foreach($statuses->groupBy('group') as $group => $groupStatuses)
+                        <optgroup label="{{ $group }}">
+                            @foreach($groupStatuses as $status)
+                                <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>
@@ -64,9 +68,8 @@
                         <th>Nom du client</th>
                         <th>Téléphone</th>
                         <th>Immatriculation</th>
-                        <th>Échéance</th>
-                        <th>Créé par</th>
-                        <th>Date</th>
+                        <th>D-Échéance</th>
+                        <th>D-Remonté</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -92,7 +95,6 @@
                         <td class="whitespace-nowrap">{{ $opp->telephone ?? '—' }}</td>
                         <td class="whitespace-nowrap">{{ $opp->plaque_immatriculation ?? '—' }}</td>
                         <td class="whitespace-nowrap">{{ $opp->echeance ? $opp->echeance->format('d/m/Y') : '—' }}</td>
-                        <td class="whitespace-nowrap">{{ $opp->creator->name ?? '—' }}</td>
                         <td class="text-gray-400 whitespace-nowrap">{{ $opp->created_at->format('d/m/Y') }}</td>
                         <td>
                             <div class="flex items-center gap-2">

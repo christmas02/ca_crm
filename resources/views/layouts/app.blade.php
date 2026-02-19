@@ -33,7 +33,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-sm font-semibold text-gray-800 truncate">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-gray-400 truncate">{{ auth()->user()->email }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ auth()->user()->identification }}</p>
                 </div>
             </div>
 

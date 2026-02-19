@@ -13,8 +13,8 @@
                             <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required class="form-input">
                         </div>
                         <div class="form-group">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required class="form-input">
+                            <label for="identification" class="form-label">Identification *</label>
+                            <input type="text" id="identification" name="identification" value="{{ old('identification', $user->identification) }}" required class="form-input">
                         </div>
                         <div class="form-group">
                             <label for="password" class="form-label">Mot de passe (laisser vide pour ne pas modifier)</label>

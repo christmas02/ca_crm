@@ -40,7 +40,7 @@ class OpportunityController extends Controller
         }
 
         $opportunities = $query->latest()->paginate(15)->withQueryString();
-        $statuses = Status::orderBy('order')->get();
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
 
         return view('opportunities.index', compact('opportunities', 'statuses'));
     }
@@ -56,7 +56,7 @@ class OpportunityController extends Controller
         }
 
         $opportunities = $query->latest()->paginate(15);
-        $statuses = Status::orderBy('order')->get();
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
 
         return view('opportunities.index', compact('opportunities', 'statuses'));
     }
@@ -121,7 +121,7 @@ class OpportunityController extends Controller
             ->when(auth()->user()->isLead(), fn($q) => $q->where('team_id', auth()->user()->team_id))
             ->get();
 
-        $statuses = Status::orderBy('order')->get();
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
 
         return view('opportunities.show', compact('opportunity', 'conseilUsers', 'statuses'));
     }
@@ -130,7 +130,7 @@ class OpportunityController extends Controller
     {
         $this->authorize('update', $opportunity);
 
-        $statuses = Status::orderBy('order')->get();
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
 
         return view('opportunities.edit', compact('opportunity', 'statuses'));
     }

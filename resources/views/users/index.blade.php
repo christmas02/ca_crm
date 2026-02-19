@@ -14,7 +14,7 @@
                 <thead>
                     <tr>
                         <th>Nom</th>
-                        <th>Email</th>
+                        <th>Identification</th>
                         <th>Rôle</th>
                         <th>Équipe</th>
                         <th>Actions</th>
@@ -24,7 +24,7 @@
                     @foreach($users as $user)
                     <tr>
                         <td class="font-medium text-gray-800">{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
+                        <td>{{ $user->identification }}</td>
                         <td><span class="badge bg-primary-100 text-primary-700">{{ $user->role->name ?? 'N/A' }}</span></td>
                         <td>{{ $user->team->name ?? '—' }}</td>
                         <td>

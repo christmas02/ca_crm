@@ -1,17 +1,17 @@
 <x-app-layout>
     <x-slot name="header">Tableau de bord</x-slot>
 
-    {{-- Stat Cards by Status --}}
-    @if(isset($statusCounts))
+    {{-- Stat Cards by Group --}}
+    @if(isset($groupCounts))
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        @foreach($statusCounts as $status)
+        @foreach($groupCounts as $group)
         <div class="stat-card">
             <div>
-                <p class="stat-card-value" style="color: {{ $status->color }}">{{ $status->opportunities_count }}</p>
-                <p class="stat-card-label">{{ $status->name }}</p>
+                <p class="stat-card-value" style="color: {{ $group->color }}">{{ $group->count }}</p>
+                <p class="stat-card-label">{{ $group->group }}</p>
             </div>
-            <div class="stat-card-icon" style="background-color: {{ $status->color }}15">
-                <svg class="w-6 h-6" style="color: {{ $status->color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <div class="stat-card-icon" style="background-color: {{ $group->color }}15">
+                <svg class="w-6 h-6" style="color: {{ $group->color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
         </div>
         @endforeach
@@ -60,8 +60,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Titre</th>
-                        <th>Prospect</th>
+                        <th>Nom et prenom du client</th>
                         <th>Téléphone</th>
                         <th>Statut</th>
                         <th>Assigné à</th>
@@ -71,8 +70,7 @@
                 <tbody>
                     @foreach($recentOpportunities as $opp)
                     <tr>
-                        <td><a href="{{ route('opportunities.show', $opp) }}" class="text-primary-400 hover:text-primary-500 font-medium">{{ $opp->title }}</a></td>
-                        <td class="font-medium text-gray-800">{{ $opp->full_name }}</td>
+                        <td><a href="{{ route('opportunities.show', $opp) }}" class="text-primary-400 hover:text-primary-500 font-medium">{{ $opp->full_name }}</a></td>
                         <td>{{ $opp->telephone ?? '—' }}</td>
                         <td>
                             @if($opp->status)

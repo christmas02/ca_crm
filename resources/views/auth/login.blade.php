@@ -4,18 +4,18 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        {{-- Email --}}
+        {{-- Identification --}}
         <div>
-            <label for="email" class="form-label">Adresse email professionnelle</label>
+            <label for="identification" class="form-label">Identification</label>
             <div class="relative mt-1">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 </div>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                    placeholder="votre.email@ca-crm.com"
+                <input id="identification" type="text" name="identification" value="{{ old('identification') }}" required autofocus autocomplete="username"
+                    placeholder="Votre identifiant"
                     class="block w-full pl-10 rounded-lg border-gray-200 shadow-sm text-sm focus:border-primary-400 focus:ring-primary-400">
             </div>
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-input-error :messages="$errors->get('identification')" class="mt-2" />
         </div>
 
         {{-- Password --}}

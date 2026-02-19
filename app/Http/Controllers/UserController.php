@@ -30,7 +30,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'identification' => 'required|string|max:255|unique:users',
             'password' => ['required', Rules\Password::defaults()],
             'role_id' => 'required|exists:roles,id',
             'team_id' => 'nullable|exists:teams,id',
@@ -56,7 +56,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'identification' => 'required|string|max:255|unique:users,identification,' . $user->id,
             'password' => ['nullable', Rules\Password::defaults()],
             'role_id' => 'required|exists:roles,id',
             'team_id' => 'nullable|exists:teams,id',

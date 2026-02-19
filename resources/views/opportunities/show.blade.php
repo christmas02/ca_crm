@@ -195,8 +195,12 @@
                     <form method="POST" action="{{ route('opportunities.change-status', $opportunity) }}">
                         @csrf
                         <select name="status_id" required class="form-select">
-                            @foreach($statuses as $status)
-                                <option value="{{ $status->id }}" {{ $opportunity->status_id == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                            @foreach($statuses->groupBy('group') as $group => $groupStatuses)
+                                <optgroup label="{{ $group }}">
+                                    @foreach($groupStatuses as $status)
+                                        <option value="{{ $status->id }}" {{ $opportunity->status_id == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                         <button type="submit" class="mt-3 w-full btn-accent justify-center">Mettre à jour</button>
