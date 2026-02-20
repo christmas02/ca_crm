@@ -13,7 +13,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'email',
+        'identification',
         'password',
         'role_id',
         'team_id',
@@ -24,9 +24,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected $casts = [];
 
     public function role()
     {

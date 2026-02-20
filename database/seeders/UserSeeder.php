@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
         // Admin
         User::create([
             'name' => 'Admin Principal',
-            'email' => 'admin@ca-crm.com',
+            'identification' => 'admin@ca-crm.com',
             'password' => Hash::make('password'),
             'role_id' => $adminRole->id,
             'team_id' => null,
@@ -32,14 +32,14 @@ class UserSeeder extends Seeder
         // Leads
         User::create([
             'name' => 'Sophie Martin',
-            'email' => 'lead1@ca-crm.com',
+            'identification' => 'lead1@ca-crm.com',
             'password' => Hash::make('password'),
             'role_id' => $leadRole->id,
             'team_id' => $teamAlpha->id,
         ]);
         User::create([
             'name' => 'Pierre Dubois',
-            'email' => 'lead2@ca-crm.com',
+            'identification' => 'lead2@ca-crm.com',
             'password' => Hash::make('password'),
             'role_id' => $leadRole->id,
             'team_id' => $teamBeta->id,
@@ -50,7 +50,7 @@ class UserSeeder extends Seeder
         foreach ($conseilNames as $i => $name) {
             User::create([
                 'name' => $name,
-                'email' => 'conseil' . ($i + 1) . '@ca-crm.com',
+                'identification' => 'conseil' . ($i + 1) . '@ca-crm.com',
                 'password' => Hash::make('password'),
                 'role_id' => $conseilRole->id,
                 'team_id' => $i < 3 ? $teamAlpha->id : $teamBeta->id,
@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
         foreach ($terrainNames as $i => $name) {
             User::create([
                 'name' => $name,
-                'email' => 'terrain' . ($i + 1) . '@ca-crm.com',
+                'identification' => 'terrain' . ($i + 1) . '@ca-crm.com',
                 'password' => Hash::make('password'),
                 'role_id' => $terrainRole->id,
                 'team_id' => $i < 3 ? $teamAlpha->id : $teamBeta->id,
