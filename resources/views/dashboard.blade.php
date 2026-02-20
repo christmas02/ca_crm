@@ -1,8 +1,25 @@
 <x-app-layout>
     <x-slot name="header">Tableau de bord</x-slot>
 
+    {{-- Custom Stat Cards by Role --}}
+    @if(isset($stats))
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        @foreach($stats as $stat)
+        <div class="stat-card">
+            <div>
+                <p class="stat-card-value" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+                <p class="stat-card-label">{{ $stat['label'] }}</p>
+            </div>
+            <div class="stat-card-icon" style="background-color: {{ $stat['color'] }}15">
+                <span style="color: {{ $stat['color'] }}" class="text-2xl">{{ $stat['icon'] }}</span>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     {{-- Stat Cards by Group --}}
-    @if(isset($groupCounts))
+    @if(isset($groupCounts) && (auth()->user()->isAdmin() || auth()->user()->isLead()))
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         @foreach($groupCounts as $group)
         <div class="stat-card">
@@ -99,8 +116,8 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Titre</th>
-                        <th>Prospect</th>
+
+                        <th>Nom et prnom du client</th>
                         <th>Téléphone</th>
                         <th>Statut</th>
                         <th>Date</th>
@@ -109,8 +126,7 @@
                 <tbody>
                     @foreach($assignedOpportunities as $opp)
                     <tr>
-                        <td><a href="{{ route('opportunities.show', $opp) }}" class="text-primary-400 hover:text-primary-500 font-medium">{{ $opp->title }}</a></td>
-                        <td class="font-medium text-gray-800">{{ $opp->full_name }}</td>
+                        <td><a href="{{ route('opportunities.show', $opp) }}" class="text-primary-400 hover:text-primary-500 font-medium">{{ $opp->full_name }}</a></td>
                         <td>{{ $opp->telephone ?? '—' }}</td>
                         <td>
                             @if($opp->status)

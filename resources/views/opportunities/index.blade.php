@@ -44,6 +44,7 @@
     {{-- Table --}}
     <div class="card" x-data="{ selectedIds: [], allChecked: false }">
         {{-- Bulk actions bar --}}
+        @if(!auth()->user()->isAgentConseil())
         <div x-show="selectedIds.length > 0" class="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
             <span class="text-sm font-medium text-blue-800">
                 <span x-text="selectedIds.length"></span> opportunité(s) sélectionnée(s)
@@ -53,17 +54,20 @@
                 Affecter à une personne
             </button>
         </div>
+        @endif
 
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
+                        @if(!auth()->user()->isAgentConseil())
                         <th class="w-10">
                             <input type="checkbox"
                                 @change="allChecked = $el.checked; selectedIds = allChecked ? Array.from(document.querySelectorAll('input[name=opportunity_ids]')).map(el => el.value) : []"
                                 :checked="allChecked"
                                 class="rounded">
                         </th>
+                        @endif
                         <th>Statut</th>
                         <th>Nom du client</th>
                         <th>Téléphone</th>
@@ -76,6 +80,7 @@
                 <tbody>
                     @forelse($opportunities as $opp)
                     <tr>
+                        @if(!auth()->user()->isAgentConseil())
                         <td class="w-10">
                             <input type="checkbox"
                                 name="opportunity_ids"
@@ -84,6 +89,7 @@
                                 class="rounded"
                             >
                         </td>
+                        @endif
                         <td>
                             @if($opp->status)
                             <span class="badge text-white" style="background-color: {{ $opp->status->color }}">{{ $opp->status->name }}</span>

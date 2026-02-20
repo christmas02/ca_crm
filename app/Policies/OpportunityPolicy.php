@@ -14,7 +14,7 @@ class OpportunityPolicy
 
     public function view(User $user, Opportunity $opportunity)
     {
-        if ($user->isAdmin() || $user->isLead()) {
+        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil()) {
             return true;
         }
 
@@ -24,12 +24,12 @@ class OpportunityPolicy
 
     public function create(User $user)
     {
-        return $user->hasAnyRole(['admin', 'lead', 'agent_terrain']);
+        return $user->hasAnyRole(['admin', 'lead', 'agent_terrain','agent_conseil']);
     }
 
     public function update(User $user, Opportunity $opportunity)
     {
-        if ($user->isAdmin() || $user->isLead()) {
+        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil()) {
             return true;
         }
 
