@@ -86,7 +86,7 @@
                     </div>
 
                     {{-- Documents --}}
-                    @if($opportunity->urlcarte_grise_terrain || $opportunity->url_attestationassurance_terrain || $opportunity->urlcarte_grise || $opportunity->url_attestationassurance)
+                    @if($opportunity->urlcarte_grise || $opportunity->url_attestationassurance)
                     <div class="mb-6 pb-6 border-b border-gray-100">
                         <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                             <div class="w-1 h-4 bg-purple-500 rounded-full"></div>

@@ -122,44 +122,34 @@
                             Documents 
                         </h4>
                          <div class="grid grid-cols-2 gap-3">
-                            @if($opportunity->urlcarte_grise_terrain)
-                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise_terrain) }}', 'Carte grise (terrain)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise (terrain)</p><p class="text-xs text-gray-400">Visualiser</p></div>
-                            </button>
-                            @endif
-                            @if($opportunity->url_attestationassurance_terrain)
-                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance_terrain) }}', 'Attestation (terrain)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation (terrain)</p><p class="text-xs text-gray-400">Visualiser</p></div>
-                            </button>
-                            @endif
                             @if($opportunity->urlcarte_grise)
                             <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise) }}', 'Carte grise (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
                                 <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise (back-office)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise</p><p class="text-xs text-gray-400">Visualiser</p></div>
                             </button>
                             @endif
                             @if($opportunity->url_attestationassurance)
                             <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance) }}', 'Attestation (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
                                 <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation (back-office)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation </p><p class="text-xs text-gray-400">Visualiser</p></div>
                             </button>
                             @endif
                         </div> 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
                                 
-                                <label for="urlcarte_grise_terrain" class="form-label">Carte grise </label>
+                                <label for="carte_grise" class="form-label">Carte grise </label>
                                
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la carte grise (max 5MB)</small></p>
-                                <input type="file" id="urlcarte_grise_terrain" name="urlcarte_grise_terrain" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
+                                <input type="file" id="carte_grise" name="urlcarte_grise" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
+                                <input type="hidden" name="existing_urlcarte_grise" value="{{ $opportunity->urlcarte_grise }}">
                             </div>
                             <div class="form-group">
-                                <label for="url_attestationassurance_terrain" class="form-label">Attestation </label>
+                                <label for="attestation" class="form-label">Attestation </label>
                               
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour l'attestation (max 5MB)</small></p>
-                                <input type="file" id="url_attestationassurance_terrain" name="url_attestationassurance_terrain" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
+                                <input type="file" id="attestation" name="url_attestationassurance" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
+                                <input type="hidden" name="existing_url_attestationassurance" value="{{ $opportunity->url_attestationassurance }}">
                             </div>
                         </div>
                     </div>

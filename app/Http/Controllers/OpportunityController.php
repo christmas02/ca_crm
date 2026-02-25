@@ -184,19 +184,19 @@ class OpportunityController extends Controller
                 'lieuprospection' => 'nullable|string|max:255',
                 'assureur_actuel' => 'nullable|string|max:255',
                 'isasap' => 'nullable|string|max:255',
-                'urlcarte_grise_terrain' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'url_attestationassurance_terrain' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'urlcarte_grise' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'url_attestationassurance' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             ]);
 
             $validated['created_by'] = $request->user()->id;
             $validated['status_id'] = Status::where('slug', 'nouvelle')->first()->id;
             $validated['team_id'] = $request->user()->team_id;
 
-            if ($request->hasFile('urlcarte_grise_terrain')) {
-                $validated['urlcarte_grise_terrain'] = $this->storeFile($request->file('urlcarte_grise_terrain'), 'documents/cartes_grises');
+            if ($request->hasFile('urlcarte_grise')) {
+                $validated['urlcarte_grise'] = $this->storeFile($request->file('urlcarte_grise'), 'documents/cartes_grises');
             }
-            if ($request->hasFile('url_attestationassurance_terrain')) {
-                $validated['url_attestationassurance_terrain'] = $this->storeFile($request->file('url_attestationassurance_terrain'), 'documents/attestations');
+            if ($request->hasFile('url_attestationassurance')) {
+                $validated['url_attestationassurance'] = $this->storeFile($request->file('url_attestationassurance'), 'documents/attestations');
             }
 
             Opportunity::create($validated);
@@ -261,15 +261,44 @@ class OpportunityController extends Controller
             'statut_discours' => 'nullable|string|max:255',
             'statut_carte_grise' => 'nullable|string|max:255',
             'statut_attestation' => 'nullable|string|max:255',
+            'daterelance' => 'nullable|date',
+            'status_id' => 'nullable|exists:statuses,id',
+            'montant_nette_prime' => 'nullable|numeric',
+            'montant_ttc' => 'nullable|numeric',
+            'carte_grise_client' => 'nullable|string|max:255',
+            'atd_client' => 'nullable|string|max:255',
+            'contrat_assurance' => 'nullable|string|max:255',
+            'duree_contrat' => 'nullable|string|max:255',
+            'capture_paiement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
+        // Gestion fichier carte grise back-office
         if ($request->hasFile('urlcarte_grise')) {
             $this->deleteFile($opportunity->urlcarte_grise);
             $validated['urlcarte_grise'] = $this->storeFile($request->file('urlcarte_grise'), 'documents/cartes_grises_bo');
+        } else {
+            // Si pas de nouveau fichier, garder l'existant
+            $validated['urlcarte_grise'] = $opportunity->urlcarte_grise;
         }
+
+        // Gestion fichier attestation back-office
         if ($request->hasFile('url_attestationassurance')) {
             $this->deleteFile($opportunity->url_attestationassurance);
             $validated['url_attestationassurance'] = $this->storeFile($request->file('url_attestationassurance'), 'documents/attestations_bo');
+        } else {
+            // Si pas de nouveau fichier, garder l'existant
+            $validated['url_attestationassurance'] = $opportunity->url_attestationassurance;
+        }
+
+        // Gestion fichier capture paiement (pour Client Gagné)
+        if ($request->hasFile('capture_paiement')) {
+            if ($opportunity->capture_paiement) {
+                $this->deleteFile($opportunity->capture_paiement);
+            }
+            $validated['capture_paiement'] = $this->storeFile($request->file('capture_paiement'), 'documents/captures_paiement');
+        } else {
+            // Si pas de nouveau fichier, garder l'existant
+            $validated['capture_paiement'] = $opportunity->capture_paiement ?? null;
         }
 
         $opportunity->update($validated);
