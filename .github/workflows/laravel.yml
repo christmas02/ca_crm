@@ -36,11 +36,11 @@ jobs:
       - name: Deploy to FTP Server
         uses: SamKirkland/FTP-Deploy-Action@4.3.1
         with:
-          server: 
-          username: 
-          password: 
+          server: 213.156.133.224
+          username: admin_crmconseilsassurci.com
+          password: qtFUjQ@5g
           local-dir: ./
-          server-dir: 
+          server-dir: /web/
           exclude: |
             **/.git*
             **/.git*/**
