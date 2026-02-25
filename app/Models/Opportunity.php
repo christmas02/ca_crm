@@ -13,7 +13,7 @@ class Opportunity extends Model
         'client_id', 'created_by', 'assigned_to', 'status_id', 'team_id',
         'nom', 'prenoms', 'telephone', 'telephone2',
         'title', 'observation', 'canal', 'source',
-        'plaque_immatriculation', 'echeance', 'lieuprospection',
+        'plaque_immatriculation', 'echeance', 'relance', 'lieuprospection',
         'assureur_actuel', 'periode_souscription', 'montant_souscription', 'isasap',
         'urlcarte_grise_terrain', 'url_attestationassurance_terrain',
         'urlcarte_grise', 'url_attestationassurance',
@@ -24,6 +24,7 @@ class Opportunity extends Model
 
     protected $casts = [
         'echeance' => 'datetime',
+        'relance' => 'datetime',
         'date_auth_doublon' => 'datetime',
         'doublon_check' => 'boolean',
     ];

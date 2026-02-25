@@ -52,10 +52,17 @@
                 </a>
                 @endif
 
+                @if(auth()->user()->isAgentConseil())
                 <a href="{{ route('opportunities.new') }}" class="sidebar-link {{ request()->routeIs('opportunities.new') ? 'active' : '' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12a2 2 0 104 0 2 2 0 00-4 0zm7-2a2 2 0 110-4 2 2 0 010 4zM5.728 11.694a6 6 0 018.546 0M5.727 17.25a3 3 0 017.546 0"/></svg>
-                    Opportunités nouvelles
+                    Mes Opportunités 
                 </a>
+                @endif
+
+                {{--<a href="{{ route('opportunities.new') }}" class="sidebar-link {{ request()->routeIs('opportunities.new') ? 'active' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12a2 2 0 104 0 2 2 0 00-4 0zm7-2a2 2 0 110-4 2 2 0 010 4zM5.728 11.694a6 6 0 018.546 0M5.727 17.25a3 3 0 017.546 0"/></svg>
+                    Opportunités nouvelles
+                </a>  --}}
 
                 @can('create', App\Models\Opportunity::class)
                 <a href="{{ route('opportunities.create') }}" class="sidebar-link {{ request()->routeIs('opportunities.create') ? 'active' : '' }}">

@@ -121,37 +121,43 @@
                             <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
                             Documents 
                         </h4>
+                         <div class="grid grid-cols-2 gap-3">
+                            @if($opportunity->urlcarte_grise_terrain)
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise_terrain) }}', 'Carte grise (terrain)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise (terrain)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
+                            @endif
+                            @if($opportunity->url_attestationassurance_terrain)
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance_terrain) }}', 'Attestation (terrain)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation (terrain)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
+                            @endif
+                            @if($opportunity->urlcarte_grise)
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise) }}', 'Carte grise (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise (back-office)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
+                            @endif
+                            @if($opportunity->url_attestationassurance)
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance) }}', 'Attestation (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation (back-office)</p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
+                            @endif
+                        </div> 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
                                 
                                 <label for="urlcarte_grise_terrain" class="form-label">Carte grise </label>
-                                @if($opportunity->urlcarte_grise_terrain)
-                                <p class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                    <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise_terrain) }}', 'Carte grise')" class="flex items-center gap-2 w-full">
-                                       <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                       <div class="">
-                                           <p class="text-sm font-medium text-gray-700 inline-block">Carte grise <small>Visualiser</small></p>
-                                       </div>
-                                    </button>
-                                </p>
-                                @endif
+                               
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la carte grise (max 5MB)</small></p>
                                 <input type="file" id="urlcarte_grise_terrain" name="urlcarte_grise_terrain" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
                             </div>
                             <div class="form-group">
                                 <label for="url_attestationassurance_terrain" class="form-label">Attestation </label>
-                                @if($opportunity->url_attestationassurance_terrain)
-                                <p class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                    <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance_terrain) }}', 'Attestation assurance')" class="flex items-center gap-2 w-full">
-                                       <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                       <div class="">
-                                           <p class="text-sm font-medium text-gray-700 inline-block"> Attestation <small>Visualiser</small></p>
-                                       </div>
-                                    </button>
-                                </p>
-                                @endif
+                              
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour l'attestation (max 5MB)</small></p>
                                 <input type="file" id="url_attestationassurance_terrain" name="url_attestationassurance_terrain" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
                             </div>
@@ -171,12 +177,51 @@
                             </div>
                             <div class="form-group">
                                 <label for="status_id" class="form-label">Statut de l'opportunité</label>
-                                <select id="status_id" name="status_id" class="form-select">
+                                <select id="status_id" name="status_id" class="form-select" onchange="checkClientGagne(this)">
                                     <option value="">Sélectionner</option>
                                     @foreach($statuses as $status)
-                                        <option value="{{ $status->id }}" {{ old('status_id', $opportunity->status_id) == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                                        <option value="{{ $status->id }}" data-slug="{{ $status->slug }}" {{ old('status_id', $opportunity->status_id) == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section: Client Gagné --}}
+                    <div id="clientGagneSection" class="mb-6 pb-6 border-b border-gray-100" style="display: none;">
+                        <h4 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                            Détails - Client Gagné
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="montant_nette_prime" class="form-label">Montant nette de prime</label>
+                                <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="montant_ttc" class="form-label">Montant TTC</label>
+                                <input type="number" id="montant_ttc" name="montant_ttc" step="0.01" value="{{ old('montant_ttc', $opportunity->montant_ttc ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="carte_grise_client" class="form-label">Carte grise</label>
+                                <input type="text" id="carte_grise_client" name="carte_grise_client" value="{{ old('carte_grise_client', $opportunity->carte_grise_client ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="atd_client" class="form-label">ATD client</label>
+                                <input type="text" id="atd_client" name="atd_client" value="{{ old('atd_client', $opportunity->atd_client ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="contrat_assurance" class="form-label">Contrat d'assurance</label>
+                                <input type="text" id="contrat_assurance" name="contrat_assurance" value="{{ old('contrat_assurance', $opportunity->contrat_assurance ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="duree_contrat" class="form-label">Durée du contrat</label>
+                                <input type="text" id="duree_contrat" name="duree_contrat" value="{{ old('duree_contrat', $opportunity->duree_contrat ?? '') }}" class="form-input">
+                            </div>
+                            <div class="form-group md:col-span-2">
+                                <label for="capture_paiement" class="form-label">Capture du paiement</label>
+                                <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
                         </div>
                     </div>
@@ -305,6 +350,27 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeDocumentModal();
+            }
+        });
+
+        // Gérer l'affichage du bloc "Client Gagné"
+        function checkClientGagne(selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const slug = selectedOption.getAttribute('data-slug');
+            const clientGagneSection = document.getElementById('clientGagneSection');
+            
+            if (slug === 'gagne') {
+                clientGagneSection.style.display = 'block';
+            } else {
+                clientGagneSection.style.display = 'none';
+            }
+        }
+
+        // Vérifier au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelect = document.getElementById('status_id');
+            if (statusSelect.value) {
+                checkClientGagne(statusSelect);
             }
         });
     </script>

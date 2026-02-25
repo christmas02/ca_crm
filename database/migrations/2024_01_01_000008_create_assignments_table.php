@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('opportunity_id')->constrained('opportunities')->cascadeOnDelete();
             $table->foreignId('assigned_by')->constrained('users');
             $table->foreignId('assigned_to')->constrained('users');
+            $table->string('status')->default('pending');
+            $table->datetime('date_affect')->nullable();
             $table->timestamps();
         });
     }

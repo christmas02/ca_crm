@@ -93,29 +93,17 @@
                             Documents
                         </h4>
                         <div class="grid grid-cols-2 gap-3">
-                            @if($opportunity->urlcarte_grise_terrain)
-                            <a href="{{ asset('storage/' . $opportunity->urlcarte_grise_terrain) }}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div><p class="text-sm font-medium text-gray-700">Carte grise (terrain)</p><p class="text-xs text-gray-400">Télécharger</p></div>
-                            </a>
-                            @endif
-                            @if($opportunity->url_attestationassurance_terrain)
-                            <a href="{{ asset('storage/' . $opportunity->url_attestationassurance_terrain) }}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
-                                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div><p class="text-sm font-medium text-gray-700">Attestation (terrain)</p><p class="text-xs text-gray-400">Télécharger</p></div>
-                            </a>
-                            @endif
                             @if($opportunity->urlcarte_grise)
-                            <a href="{{ asset('storage/' . $opportunity->urlcarte_grise) }}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->urlcarte_grise) }}', 'Carte grise (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
                                 <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div><p class="text-sm font-medium text-gray-700">Carte grise (back-office)</p><p class="text-xs text-gray-400">Télécharger</p></div>
-                            </a>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Carte grise </p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
                             @endif
                             @if($opportunity->url_attestationassurance)
-                            <a href="{{ asset('storage/' . $opportunity->url_attestationassurance) }}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
+                            <button type="button" onclick="openDocumentModal('{{ asset('storage/' . $opportunity->url_attestationassurance) }}', 'Attestation (back-office)')" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors group">
                                 <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <div><p class="text-sm font-medium text-gray-700">Attestation (back-office)</p><p class="text-xs text-gray-400">Télécharger</p></div>
-                            </a>
+                                <div class="text-left"><p class="text-sm font-medium text-gray-700">Attestation </p><p class="text-xs text-gray-400">Visualiser</p></div>
+                            </button>
                             @endif
                         </div>
                     </div>
@@ -157,11 +145,11 @@
                     <p class="text-sm text-gray-400 text-center py-4">Aucun commentaire.</p>
                     @endforelse
 
-                    <form method="POST" action="{{ route('comments.store', $opportunity) }}" class="mt-4 pt-4 border-t border-gray-100">
+                    {{-- <form method="POST" action="{{ route('comments.store', $opportunity) }}" class="mt-4 pt-4 border-t border-gray-100">
                         @csrf
                         <textarea name="body" rows="3" required placeholder="Ajouter un commentaire..." class="form-textarea"></textarea>
                         <button type="submit" class="mt-2 btn-primary text-sm">Commenter</button>
-                    </form>
+                    </form> --}}
                 </div>
             </div>
         </div>
@@ -187,7 +175,7 @@
             </div>
             @endcan
 
-            {{-- Change Status --}}
+            {{-- Change Status 
             @can('changeStatus', $opportunity)
             <div class="card">
                 <div class="card-header"><h3>Changer le statut</h3></div>
@@ -207,7 +195,7 @@
                     </form>
                 </div>
             </div>
-            @endcan
+            @endcan --}}
 
             {{-- Doublon --}}
             @if($opportunity->doublon_check)
@@ -243,4 +231,78 @@
             @endif
         </div>
     </div>
+
+    {{-- Document Modal --}}
+    <div id="documentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl w-11/12 h-5/6 flex flex-col max-w-4xl">
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800"></h3>
+                <button onclick="closeDocumentModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Modal Content --}}
+            <div id="modalContent" class="flex-1 overflow-auto flex items-center justify-center p-6 bg-gray-50">
+                <!-- Document sera inséré ici -->
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="flex items-center justify-between p-6 border-t border-gray-200 bg-white sticky bottom-0">
+                <a id="downloadBtn" href="#" download class="btn-secondary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Télécharger
+                </a>
+                <button onclick="closeDocumentModal()" class="btn-secondary">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDocumentModal(url, title) {
+            const modal = document.getElementById('documentModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            modalTitle.textContent = title;
+            downloadBtn.href = url;
+            
+            const ext = url.split('.').pop().toLowerCase();
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                modalContent.innerHTML = `<img src="${url}" alt="${title}" class="max-w-full max-h-full rounded-lg object-contain">`;
+            } else if (ext === 'pdf') {
+                modalContent.innerHTML = `<iframe src="${url}" class="w-full h-full rounded-lg border border-gray-200" allow="fullscreen"></iframe>`;
+            } else {
+                modalContent.innerHTML = `<div class="text-center py-8">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <p class="text-gray-400 text-sm">Format de document non supporté</p>
+                    <a href="${url}" download class="text-primary-400 hover:text-primary-600 text-sm mt-2 inline-block">Télécharger le document</a>
+                </div>`;
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeDocumentModal() {
+            const modal = document.getElementById('documentModal');
+            modal.classList.add('hidden');
+        }
+
+        // Fermer le modal en cliquant en dehors
+        document.getElementById('documentModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDocumentModal();
+            }
+        });
+
+        // Fermer le modal en appuyant sur Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDocumentModal();
+            }
+        });
+    </script>
 </x-app-layout>

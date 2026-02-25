@@ -105,7 +105,7 @@
     @endif
     @endif
 
-    {{-- Agent Conseil Dashboard --}}
+    {{-- Agent Conseil Dashboard 
     @if(auth()->user()->isAgentConseil())
     <div class="card">
         <div class="card-header">
@@ -143,7 +143,7 @@
         <div class="card-body text-gray-400 text-center py-10">Aucune opportunité assignée.</div>
         @endif
     </div>
-    @endif
+    @endif --}}
 
     {{-- Agent Terrain Dashboard --}}
     @if(auth()->user()->isAgentTerrain())

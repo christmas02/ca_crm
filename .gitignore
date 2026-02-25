@@ -18,3 +18,7 @@ yarn-error.log
 /.vscode
 .DS_Store
 .ca_apps 
+/storage/
+/ca_apps/storage/
+/ca_apps/storage/logs/
+*.log

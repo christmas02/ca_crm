@@ -58,6 +58,8 @@ class OpportunitySeeder extends Seeder
                 'canal' => fake()->randomElement($canals),
                 'plaque_immatriculation' => strtoupper(fake()->bothify('??-###-??')),
                 'echeance' => fake()->dateTimeBetween('+1 month', '+2 years'),
+                // Date de relance/repositionnement générée aléatoirement
+                'relance' => fake()->boolean(70) ? fake()->dateTimeBetween('+5 days', '+1 year') : null,
                 'lieuprospection' => fake()->randomElement($locations),
                 'assureur_actuel' => fake()->randomElement($assureurs),
                 'periode_souscription' => fake()->randomElement([6, 12, 24, 36]),
@@ -91,10 +93,15 @@ class OpportunitySeeder extends Seeder
             }
 
             if ($assignee) {
+                // Créer l'assignation avec:
+                // - status: 'active' pour les assignations actuelles
+                // - date_affect: date d'assignation aléatoire entre aujourd'hui et le début du mois
                 Assignment::create([
                     'opportunity_id' => $opportunity->id,
                     'assigned_by' => $leads->random()->id,
                     'assigned_to' => $assignee->id,
+                    'status' => 'active', // Valeurs possibles: 'active' ou 'inactive'
+                    'date_affect' => fake()->dateTimeBetween('-30 days', 'now'), // Date d'assignation aléatoire
                 ]);
             }
 
