@@ -9,7 +9,7 @@ class Status extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'order', 'color'];
+    protected $fillable = ['name', 'slug', 'group', 'order', 'color'];
 
     public function opportunities()
     {

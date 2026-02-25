@@ -9,7 +9,11 @@ class Assignment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['opportunity_id', 'assigned_by', 'assigned_to'];
+    protected $fillable = ['opportunity_id', 'assigned_by', 'assigned_to', 'status', 'date_affect'];
+
+    protected $casts = [
+        'date_affect' => 'datetime',
+    ];
 
     public function opportunity()
     {
