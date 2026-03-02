@@ -145,11 +145,7 @@
                     <p class="text-sm text-gray-400 text-center py-4">Aucun commentaire.</p>
                     @endforelse
 
-                    {{-- <form method="POST" action="{{ route('comments.store', $opportunity) }}" class="mt-4 pt-4 border-t border-gray-100">
-                        @csrf
-                        <textarea name="body" rows="3" required placeholder="Ajouter un commentaire..." class="form-textarea"></textarea>
-                        <button type="submit" class="mt-2 btn-primary text-sm">Commenter</button>
-                    </form> --}}
+
                 </div>
             </div>
         </div>

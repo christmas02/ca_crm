@@ -73,7 +73,7 @@
                         <th>Téléphone</th>
                         <th>Immatriculation</th>
                         <th>D-Échéance</th>
-                        <th>D-Remonté</th>
+                        <th>D-Relance</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -101,7 +101,7 @@
                         <td class="whitespace-nowrap">{{ $opp->telephone ?? '—' }}</td>
                         <td class="whitespace-nowrap">{{ $opp->plaque_immatriculation ?? '—' }}</td>
                         <td class="whitespace-nowrap">{{ $opp->echeance ? $opp->echeance->format('d/m/Y') : '—' }}</td>
-                        <td class="text-gray-400 whitespace-nowrap">{{ $opp->created_at->format('d/m/Y') }}</td>
+                        <td class="text-gray-400 whitespace-nowrap">{{ $opp->relance ? $opp->relance->format('d/m/Y') : '—' }}</td>
                         <td>
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('opportunities.show', $opp) }}" class="text-gray-400 hover:text-primary-400" title="Voir">

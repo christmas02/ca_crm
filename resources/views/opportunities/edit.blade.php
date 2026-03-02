@@ -162,8 +162,8 @@
                         </h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
-                                <label for="daterelance" class="form-label">Date de relance</label>
-                                <input type="date" id="daterelance" name="daterelance" value="{{ old('daterelance', $opportunity->daterelance?->format('Y-m-d')) }}" class="form-input">
+                                <label for="daterelance" class="form-label">Date et heure de relance</label>
+                                <input type="datetime-local" id="relance" name="relance" value="{{ old('relance', $opportunity->relance?->format('Y-m-d\TH:i')) }}" class="form-input">
                             </div>
                             <div class="form-group">
                                 <label for="status_id" class="form-label">Statut de l'opportunité</label>
@@ -213,6 +213,11 @@
                                 <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
+                            <div class="form-group md:col-span-2">
+                                <label for="contrat" class="form-label">Contrat</label>
+                                <input type="file" id="contrat" name="contrat" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour le contrat (max 5MB)</small></p>
+                            </div>
                         </div>
                     </div>
 
@@ -239,10 +244,11 @@
                             <p class="text-sm text-gray-400 text-center py-4">Aucun commentaire.</p>
                             @endforelse
                             <hr>
-                            <div>
-                                <label for="body" class="form-label">Ajouter un commentaire</label>
-                                <textarea name="body" rows="3" required placeholder="Ajouter un commentaire..." class="form-textarea"></textarea>
-                            </div>    
+                                <div class="form-group">
+                                    <label for="body" class="form-label">Ajouter un commentaire</label>
+                                    <textarea id="body" name="body" rows="3" required placeholder="Ajouter un commentaire..." class="form-textarea"></textarea>
+                                    @error('body')<span class="form-error">{{ $message }}</span>@enderror
+                                </div>
                         </div>
                     </div>
 

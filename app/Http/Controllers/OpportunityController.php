@@ -28,6 +28,11 @@ class OpportunityController extends Controller
                 return null;
             }
 
+            // Créer le dossier s'il n'existe pas
+            if (!Storage::disk('public')->exists($folder)) {
+                Storage::disk('public')->makeDirectory($folder);
+            }
+
             $path = $file->store($folder, 'public');
             Log::info('Fichier stocké avec succès: ' . $path);
             return $path;
@@ -240,72 +245,100 @@ class OpportunityController extends Controller
 
     public function update(Request $request, Opportunity $opportunity)
     {
-        $this->authorize('update', $opportunity);
+        try {
+            //dd($request->all());
 
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenoms' => 'required|string|max:255',
-            'telephone' => 'required|string|max:255',
-            'telephone2' => 'nullable|string|max:255',
-            'observation' => 'nullable|string',
-            'canal' => 'nullable|string|max:255',
-            'plaque_immatriculation' => 'nullable|string|max:255',
-            'echeance' => 'nullable|date',
-            'lieuprospection' => 'nullable|string|max:255',
-            'assureur_actuel' => 'nullable|string|max:255',
-            'periode_souscription' => 'nullable|integer',
-            'montant_souscription' => 'nullable|integer',
-            'isasap' => 'nullable|string|max:255',
-            'urlcarte_grise' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'url_attestationassurance' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'statut_discours' => 'nullable|string|max:255',
-            'statut_carte_grise' => 'nullable|string|max:255',
-            'statut_attestation' => 'nullable|string|max:255',
-            'daterelance' => 'nullable|date',
-            'status_id' => 'nullable|exists:statuses,id',
-            'montant_nette_prime' => 'nullable|numeric',
-            'montant_ttc' => 'nullable|numeric',
-            'carte_grise_client' => 'nullable|string|max:255',
-            'atd_client' => 'nullable|string|max:255',
-            'contrat_assurance' => 'nullable|string|max:255',
-            'duree_contrat' => 'nullable|string|max:255',
-            'capture_paiement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
+            $this->authorize('update', $opportunity);
 
-        // Gestion fichier carte grise back-office
-        if ($request->hasFile('urlcarte_grise')) {
-            $this->deleteFile($opportunity->urlcarte_grise);
-            $validated['urlcarte_grise'] = $this->storeFile($request->file('urlcarte_grise'), 'documents/cartes_grises_bo');
-        } else {
-            // Si pas de nouveau fichier, garder l'existant
-            $validated['urlcarte_grise'] = $opportunity->urlcarte_grise;
-        }
+            $validated = $request->validate([
+                'nom' => 'required|string|max:255',
+                'prenoms' => 'required|string|max:255',
+                'telephone' => 'required|string|max:255',
+                'telephone2' => 'nullable|string|max:255',
+                'observation' => 'nullable|string',
+                'canal' => 'nullable|string|max:255',
+                'plaque_immatriculation' => 'nullable|string|max:255',
+                'echeance' => 'nullable|date',
+                'relance' => 'nullable|date',
+                'lieuprospection' => 'nullable|string|max:255',
+                'assureur_actuel' => 'nullable|string|max:255',
+                'periode_souscription' => 'nullable|integer',
+                'montant_souscription' => 'nullable|integer',
+                'isasap' => 'nullable|string|max:255',
+                'urlcarte_grise' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'url_attestationassurance' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'statut_discours' => 'nullable|string|max:255',
+                'statut_carte_grise' => 'nullable|string|max:255',
+                'statut_attestation' => 'nullable|string|max:255',
+                'status_id' => 'nullable|exists:statuses,id',
+                'montant_nette_prime' => 'nullable|numeric',
+                'montant_ttc' => 'nullable|numeric',
+                'carte_grise_client' => 'nullable|string|max:255',
+                'atd_client' => 'nullable|string|max:255',
+                'contrat_assurance' => 'nullable|string|max:255',
+                'duree_contrat' => 'nullable|string|max:255',
+                'capture_paiement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'body' => 'nullable|string',
+            ]);
 
-        // Gestion fichier attestation back-office
-        if ($request->hasFile('url_attestationassurance')) {
-            $this->deleteFile($opportunity->url_attestationassurance);
-            $validated['url_attestationassurance'] = $this->storeFile($request->file('url_attestationassurance'), 'documents/attestations_bo');
-        } else {
-            // Si pas de nouveau fichier, garder l'existant
-            $validated['url_attestationassurance'] = $opportunity->url_attestationassurance;
-        }
-
-        // Gestion fichier capture paiement (pour Client Gagné)
-        if ($request->hasFile('capture_paiement')) {
-            if ($opportunity->capture_paiement) {
-                $this->deleteFile($opportunity->capture_paiement);
+            // Gestion fichier carte grise back-office
+            if ($request->hasFile('urlcarte_grise')) {
+                $this->deleteFile($opportunity->urlcarte_grise);
+                $validated['urlcarte_grise'] = $this->storeFile($request->file('urlcarte_grise'), 'documents/cartes_grises');
+            } else {
+                // Si pas de nouveau fichier, garder l'existant
+                $validated['urlcarte_grise'] = $opportunity->urlcarte_grise;
             }
-            $validated['capture_paiement'] = $this->storeFile($request->file('capture_paiement'), 'documents/captures_paiement');
-        } else {
-            // Si pas de nouveau fichier, garder l'existant
-            $validated['capture_paiement'] = $opportunity->capture_paiement ?? null;
+
+            // Gestion fichier attestation back-office
+            if ($request->hasFile('url_attestationassurance')) {
+                $this->deleteFile($opportunity->url_attestationassurance);
+                $validated['url_attestationassurance'] = $this->storeFile($request->file('url_attestationassurance'), 'documents/attestations');
+            } else {
+                // Si pas de nouveau fichier, garder l'existant
+                $validated['url_attestationassurance'] = $opportunity->url_attestationassurance;
+            }
+
+            // Gestion fichier capture paiement
+            if ($request->hasFile('capture_paiement')) {
+                if ($opportunity->capture_paiement) {
+                    $this->deleteFile($opportunity->capture_paiement);
+                }
+                $validated['capture_paiement'] = $this->storeFile($request->file('capture_paiement'), 'documents/captures_paiement');
+            } else {
+                // Si pas de nouveau fichier, garder l'existant
+                $validated['capture_paiement'] = $opportunity->capture_paiement ?? null;
+            }
+
+            // Extraire le commentaire avant mise à jour
+            $commentBody = $validated['body'] ?? null;
+            unset($validated['body']);
+
+            // Mettre à jour l'opportunité
+            $opportunity->update($validated);
+
+            // Créer le commentaire s'il existe
+            if (!empty($commentBody)) {
+                $opportunity->comments()->create([
+                    'user_id' => $request->user()->id,
+                    'body' => $commentBody,
+                ]);
+            }
+
+            log::info('Opportunité ID: ' . $opportunity->id . ' mise à jour avec succès par l\'utilisateur ID: ' . $request->user()->id);
+
+            return redirect()->route('opportunities.show', $opportunity)
+                ->with('success', 'Opportunité mise à jour.');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour de l\'opportunité ID: ' . $opportunity->id . ' - ' . $e->getMessage());
+            return redirect()->route('opportunities.edit', $opportunity)
+                ->withInput($request->all())
+                ->with('error', 'Une erreur est survenue lors de la mise à jour. Veuillez réessayer.');
         }
-
-        $opportunity->update($validated);
-
-        return redirect()->route('opportunities.show', $opportunity)
-            ->with('success', 'Opportunité mise à jour.');
     }
+
+
 
     public function destroy(Opportunity $opportunity)
     {
