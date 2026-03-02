@@ -86,7 +86,7 @@
                     </div>
 
                     {{-- Documents --}}
-                    @if($opportunity->urlcarte_grise_terrain || $opportunity->url_attestationassurance_terrain || $opportunity->urlcarte_grise || $opportunity->url_attestationassurance)
+                    @if($opportunity->urlcarte_grise || $opportunity->url_attestationassurance)
                     <div class="mb-6 pb-6 border-b border-gray-100">
                         <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                             <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
@@ -145,11 +145,7 @@
                     <p class="text-sm text-gray-400 text-center py-4">Aucun commentaire.</p>
                     @endforelse
 
-                    {{-- <form method="POST" action="{{ route('comments.store', $opportunity) }}" class="mt-4 pt-4 border-t border-gray-100">
-                        @csrf
-                        <textarea name="body" rows="3" required placeholder="Ajouter un commentaire..." class="form-textarea"></textarea>
-                        <button type="submit" class="mt-2 btn-primary text-sm">Commenter</button>
-                    </form> --}}
+
                 </div>
             </div>
         </div>
