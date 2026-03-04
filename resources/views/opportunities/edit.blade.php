@@ -73,44 +73,34 @@
                             </div>
                             <div class="form-group">
                                 <label for="assureur_actuel" class="form-label">Assureur actuel</label>
-                                <input type="text" id="assureur_actuel" name="assureur_actuel" value="{{ old('assureur_actuel', $opportunity->assureur_actuel) }}" class="form-input">
+                                <select id="assureur_actuel" name="assureur_actuel" class="form-input">
+                                    <option value="">-- Sélectionner un assureur --</option>
+                                    @foreach($insurancePartners as $partner)
+                                    <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
+                                        {{ $partner->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Section: Statuts documents --}}
+                    {{-- Section: Statuts  --}}
                     <div class="mb-6 pb-6 border-b border-gray-100">
-                        <h4 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <div class="w-1 h-4 bg-yellow-500 rounded-full"></div>
-                            Statuts documents
-                        </h4>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="form-group">
-                                <label for="statut_discours" class="form-label">Statut discours</label>
-                                <select id="statut_discours" name="statut_discours" class="form-select">
-                                    <option value="">Sélectionner</option>
-                                    @foreach(['Validé', 'En attente', 'Rejeté'] as $sd)
-                                        <option value="{{ $sd }}" {{ old('statut_discours', $opportunity->statut_discours) == $sd ? 'selected' : '' }}>{{ $sd }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="statut_carte_grise" class="form-label">Statut carte grise</label>
-                                <select id="statut_carte_grise" name="statut_carte_grise" class="form-select">
-                                    <option value="">Sélectionner</option>
-                                    @foreach(['Reçu', 'Manquant', 'En attente'] as $sc)
-                                        <option value="{{ $sc }}" {{ old('statut_carte_grise', $opportunity->statut_carte_grise) == $sc ? 'selected' : '' }}>{{ $sc }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="statut_attestation" class="form-label">Statut attestation</label>
-                                <select id="statut_attestation" name="statut_attestation" class="form-select">
-                                    <option value="">Sélectionner</option>
-                                    @foreach(['Reçu', 'Manquant', 'En attente'] as $sa)
-                                        <option value="{{ $sa }}" {{ old('statut_attestation', $opportunity->statut_attestation) == $sa ? 'selected' : '' }}>{{ $sa }}</option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label">Etat du discours</label>
+                                <div class="flex gap-3">
+                                    <button type="button" class="discourse-btn discourse-btn-ok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ old('statut_discours', $opportunity->statut_discours) == 'Validé' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Validé')">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Discours OK
+                                    </button>
+                                    <button type="button" class="discourse-btn discourse-btn-nok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ old('statut_discours', $opportunity->statut_discours) == 'Rejeté' ? 'border-rose-500 bg-rose-50 text-rose-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Rejeté')">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m10-10a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Discours Non OK
+                                    </button>
+                                </div>
+                                <input type="hidden" id="statut_discours" name="statut_discours" value="{{ old('statut_discours', $opportunity->statut_discours) }}">
                             </div>
                         </div>
                     </div>
@@ -185,36 +175,48 @@
                         </h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
-                                <label for="montant_nette_prime" class="form-label">Montant nette de prime</label>
+                                <label for="insurance_partner_id" class="form-label">Partenaire d'assurance</label>
+                                <select id="insurance_partner_id" name="insurance_partner_id" class="form-input">
+                                    <option value="">-- Sélectionner un partenaire --</option>
+                                    @foreach($insurancePartners as $partner)
+                                    <option value="{{ $partner->id }}" {{ old('insurance_partner_id', $opportunity->insurance_partner_id) == $partner->id ? 'selected' : '' }}>
+                                        {{ $partner->name }} ({{ $partner->commission_rate }}%)
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('insurance_partner_id')<span class="form-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="montant_nette_prime" class="form-label">Prime NET</label>
                                 <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label for="montant_ttc" class="form-label">Montant TTC</label>
+                                <label for="montant_ttc" class="form-label">Prime TTC</label>
                                 <input type="number" id="montant_ttc" name="montant_ttc" step="0.01" value="{{ old('montant_ttc', $opportunity->montant_ttc ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label for="carte_grise_client" class="form-label">Carte grise</label>
-                                <input type="text" id="carte_grise_client" name="carte_grise_client" value="{{ old('carte_grise_client', $opportunity->carte_grise_client ?? '') }}" class="form-input">
+                                <label for="montant_nette_prime" class="form-label">Période du contract</label>
+                                <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
                                 <label for="atd_client" class="form-label">ATD client</label>
-                                <input type="text" id="atd_client" name="atd_client" value="{{ old('atd_client', $opportunity->atd_client ?? '') }}" class="form-input">
+                                <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
                             <div class="form-group">
                                 <label for="contrat_assurance" class="form-label">Contrat d'assurance</label>
-                                <input type="text" id="contrat_assurance" name="contrat_assurance" value="{{ old('contrat_assurance', $opportunity->contrat_assurance ?? '') }}" class="form-input">
+                                <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
+                    
                             <div class="form-group">
-                                <label for="duree_contrat" class="form-label">Durée du contrat</label>
-                                <input type="text" id="duree_contrat" name="duree_contrat" value="{{ old('duree_contrat', $opportunity->duree_contrat ?? '') }}" class="form-input">
-                            </div>
-                            <div class="form-group md:col-span-2">
                                 <label for="capture_paiement" class="form-label">Capture du paiement</label>
                                 <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
-                            <div class="form-group md:col-span-2">
-                                <label for="contrat" class="form-label">Contrat</label>
+                         
+                            <div class="form-group">
+                                <label for="contrat" class="form-label">Attestation d'assurance</label>
                                 <input type="file" id="contrat" name="contrat" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour le contrat (max 5MB)</small></p>
                             </div>
@@ -362,11 +364,50 @@
             }
         }
 
+        // Gérer la sélection du discours
+        function selectDiscourseStatus(event, value) {
+            event.preventDefault();
+            document.getElementById('statut_discours').value = value;
+            
+            // Réinitialiser tous les boutons au style par défaut
+            document.querySelectorAll('.discourse-btn').forEach(btn => {
+                btn.classList.remove(
+                    'border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm',
+                    'border-rose-500', 'bg-rose-50', 'text-rose-700'
+                );
+                btn.classList.add('border-gray-300', 'bg-gray-100', 'text-gray-600');
+            });
+            
+            // Appliquer le style actif au bouton cliqué
+            const btn = event.target.closest('button');
+            btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+            
+            if (value === 'Validé') {
+                btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
+            } else if (value === 'Rejeté') {
+                btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
+            }
+        }
+
         // Vérifier au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
             const statusSelect = document.getElementById('status_id');
             if (statusSelect.value) {
                 checkClientGagne(statusSelect);
+            }
+
+            // Initialiser les styles des boutons de discours
+            const discourseValue = document.getElementById('statut_discours').value;
+            if (discourseValue) {
+                document.querySelectorAll('.discourse-btn').forEach(btn => {
+                    if (discourseValue === 'Validé' && btn.classList.contains('discourse-btn-ok')) {
+                        btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+                        btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
+                    } else if (discourseValue === 'Rejeté' && btn.classList.contains('discourse-btn-nok')) {
+                        btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+                        btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
+                    }
+                });
             }
         });
     </script>

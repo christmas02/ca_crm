@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InsurancePartnerController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
@@ -37,10 +39,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
     Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
 
+    // Contracts
+    Route::resource('contracts', ContractController::class);
+    Route::get('opportunities/{opportunity}/create-contract', [ContractController::class, 'createFromOpportunity'])->name('opportunities.create-contract');
+
     // Admin only routes
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
         Route::resource('teams', TeamController::class)->except(['show']);
+        Route::resource('insurance-partners', InsurancePartnerController::class);
     });
 });
 
