@@ -10,7 +10,7 @@ class Opportunity extends Model
     use HasFactory;
 
     protected $fillable = [
-        'client_id', 'created_by', 'assigned_to', 'status_id', 'team_id',
+        'client_id', 'created_by', 'assigned_to', 'status_id', 'team_id', 'insurance_partner_id',
         'nom', 'prenoms', 'telephone', 'telephone2',
         'title', 'observation', 'canal', 'source',
         'plaque_immatriculation', 'echeance', 'relance', 'lieuprospection',
@@ -19,7 +19,7 @@ class Opportunity extends Model
         'urlcarte_grise', 'url_attestationassurance',
         'statut_discours', 'statut_carte_grise', 'statut_attestation',
         'author_doublon_check', 'doublon_check', 'date_auth_doublon',
-        'isvisible',
+        'isvisible', 'carte_grise_client'
     ];
 
     protected $casts = [
@@ -67,5 +67,15 @@ class Opportunity extends Model
     public function assignments()
     {
         return $this->hasMany(Assignment::class);
+    }
+
+    public function insurancePartner()
+    {
+        return $this->belongsTo(InsurancePartner::class);
+    }
+
+    public function contract()
+    {
+        return $this->hasOne(Contract::class);
     }
 }

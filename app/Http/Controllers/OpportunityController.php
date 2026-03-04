@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\Client;
+use App\Models\InsurancePartner;
 use App\Models\Opportunity;
 use App\Models\Status;
 use App\Models\User;
@@ -170,7 +171,10 @@ class OpportunityController extends Controller
     {
         $this->authorize('create', Opportunity::class);
 
-        return view('opportunities.create');
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
+        $insurancePartners = InsurancePartner::where('active', true)->orderBy('name')->get();
+
+        return view('opportunities.create', compact('statuses', 'insurancePartners'));
     }
 
     public function store(Request $request)
@@ -239,8 +243,9 @@ class OpportunityController extends Controller
         $this->authorize('update', $opportunity);
 
         $statuses = Status::orderBy('order')->orderBy('name')->get();
+        $insurancePartners = InsurancePartner::where('active', true)->orderBy('name')->get();
 
-        return view('opportunities.edit', compact('opportunity', 'statuses'));
+        return view('opportunities.edit', compact('opportunity', 'statuses', 'insurancePartners'));
     }
 
     public function update(Request $request, Opportunity $opportunity)
@@ -324,6 +329,8 @@ class OpportunityController extends Controller
                     'body' => $commentBody,
                 ]);
             }
+
+            // mettre en place la creation du contrat quand le status de l opportunite est gagne
 
             log::info('Opportunité ID: ' . $opportunity->id . ' mise à jour avec succès par l\'utilisateur ID: ' . $request->user()->id);
 

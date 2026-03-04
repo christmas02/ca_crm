@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             TeamSeeder::class,
             UserSeeder::class,
             OpportunitySeeder::class,
+            InsurancePartnerSeeder::class,
         ]);
     }
 }
