@@ -175,17 +175,16 @@
                         </h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
-                                <label for="insurance_partner_id" class="form-label">Partenaire d'assurance</label>
-                                <select id="insurance_partner_id" name="insurance_partner_id" class="form-input">
-                                    <option value="">-- Sélectionner un partenaire --</option>
-                                    @foreach($insurancePartners as $partner)
-                                    <option value="{{ $partner->id }}" {{ old('insurance_partner_id', $opportunity->insurance_partner_id) == $partner->id ? 'selected' : '' }}>
-                                        {{ $partner->name }} ({{ $partner->commission_rate }}%)
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('insurance_partner_id')<span class="form-error">{{ $message }}</span>@enderror
-                            </div>
+                            <label for="assureur_actuel_gagne" class="form-label">Assureur actuel</label>
+                            <select id="assureur_actuel_gagne" name="assureur_actuel" class="form-input">
+                                <option value="">-- Sélectionner un assureur --</option>
+                                @foreach($insurancePartners as $partner)
+                                <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
+                                    {{ $partner->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                             <div class="form-group">
                                 <label for="montant_nette_prime" class="form-label">Prime NET</label>
                                 <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
@@ -195,18 +194,18 @@
                                 <input type="number" id="montant_ttc" name="montant_ttc" step="0.01" value="{{ old('montant_ttc', $opportunity->montant_ttc ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label for="montant_nette_prime" class="form-label">Période du contract</label>
-                                <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
+                                <label class="form-label">Période du contract Durée (mois)</label>
+                                <input type="number" id="contract_duration" name="contract_duration" min="1" placeholder="Ex: 12" value="{{ old('contract_duration', $opportunity->contract_duration ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label for="atd_client" class="form-label">ATD client</label>
-                                <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
-                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
+                                <label for="url_attestationassurance" class="form-label">Attestation client</label>
+                                <input type="file" id="url_attestationassurance" name="url_attestationassurance" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour l'ATD client (max 5MB)</small></p>
                             </div>
                             <div class="form-group">
                                 <label for="contrat_assurance" class="form-label">Contrat d'assurance</label>
-                                <input type="file" id="capture_paiement" name="capture_paiement" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
-                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
+                                <input type="file" id="contrat_assurance" name="contrat_assurance" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
+                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour le contrat d'assurance (max 5MB)</small></p>
                             </div>
                     
                             <div class="form-group">
@@ -215,11 +214,7 @@
                                 <p><small class="text-xs text-gray-400 mt-1">Mettre à jour la capture du paiement (max 5MB)</small></p>
                             </div>
                          
-                            <div class="form-group">
-                                <label for="contrat" class="form-label">Attestation d'assurance</label>
-                                <input type="file" id="contrat" name="contrat" accept=".pdf,.jpg,.jpeg,.png" class="form-input text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-600 hover:file:bg-green-100">
-                                <p><small class="text-xs text-gray-400 mt-1">Mettre à jour le contrat (max 5MB)</small></p>
-                            </div>
+                          
                         </div>
                     </div>
 

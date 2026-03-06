@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\Client;
+use App\Models\Contract;
 use App\Models\InsurancePartner;
 use App\Models\Opportunity;
 use App\Models\Status;
@@ -11,9 +12,50 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\ContractController;
 
 class OpportunityController extends Controller
 {
+    /**
+     * Génère un numéro de contrat unique avec suffixe si plusieurs contrats pour la même opportunité
+     */
+    private function generateContractNumber($opportunityId)
+    {
+        // Vérifier les contrats existants pour cette opportunité
+        $existingContracts = Contract::where('opportunity_id', $opportunityId)->get();
+        $count = $existingContracts->count();
+
+        // Si aucun contrat existant, générer un nouveau numéro de base
+        if ($count === 0) {
+            return 'CTR-' . strtoupper(uniqid());
+        }
+
+        // Récupérer le contrat existant
+        $lastContract = $existingContracts->last();
+        $lastContractNumber = $lastContract->contract_number;
+
+        // Extraire la base du numéro (avant le dernier suffixe -X s'il existe)
+        $baseNumber = $lastContractNumber;
+        if (preg_match('/-\d+$/', $lastContractNumber)) {
+            // Si le dernier contrat a un suffixe, on l'enlève
+            $baseNumber = preg_replace('/-\d+$/', '', $lastContractNumber);
+        }
+
+        // Générer le nouveau numéro avec le suffixe approprié
+        $newCount = $count + 1;
+        
+        if ($newCount === 1) {
+            // Premier contrat, pas de suffixe
+            return $baseNumber;
+        } elseif ($newCount === 2) {
+            // Deuxième contrat, ajouter -2
+            return $baseNumber . '-2';
+        } else {
+            // Troisième+ contrats, remplacer le suffixe par -newCount
+            return $baseNumber . '-' . $newCount;
+        }
+    }
+
     /**
      * Méthode de traitement des fichiers
      * 
@@ -251,10 +293,6 @@ class OpportunityController extends Controller
     public function update(Request $request, Opportunity $opportunity)
     {
         try {
-            //dd($request->all());
-
-            $this->authorize('update', $opportunity);
-
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',
                 'prenoms' => 'required|string|max:255',
@@ -276,11 +314,10 @@ class OpportunityController extends Controller
                 'statut_carte_grise' => 'nullable|string|max:255',
                 'statut_attestation' => 'nullable|string|max:255',
                 'status_id' => 'nullable|exists:statuses,id',
+                'contract_duration' => 'nullable|integer',
                 'montant_nette_prime' => 'nullable|numeric',
                 'montant_ttc' => 'nullable|numeric',
-                'carte_grise_client' => 'nullable|string|max:255',
-                'atd_client' => 'nullable|string|max:255',
-                'contrat_assurance' => 'nullable|string|max:255',
+                'contrat_assurance' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'duree_contrat' => 'nullable|string|max:255',
                 'capture_paiement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'body' => 'nullable|string',
@@ -315,12 +352,88 @@ class OpportunityController extends Controller
                 $validated['capture_paiement'] = $opportunity->capture_paiement ?? null;
             }
 
+            // gerer le fichier contrat d'assurance
+            if ($request->hasFile('contrat_assurance')) {
+                if ($opportunity->contrat_assurance) {
+                    $this->deleteFile($opportunity->contrat_assurance);
+                }
+                $validated['contrat_assurance'] = $this->storeFile($request->file('contrat_assurance'), 'documents/contrats_assurance');
+            } else {
+                // Si pas de nouveau fichier, garder l'existant
+                $validated['contrat_assurance'] = $opportunity->contrat_assurance ?? null;
+            }
+
+            // creer le client automatiquement si le statut passe à gagné et qu'il n'existe pas déjà 
+            if (isset($validated['status_id']) && $validated['status_id'] != $opportunity->status_id) {
+                $newStatus = Status::find($validated['status_id']);
+                if ($newStatus->slug === 'gagne' && !$opportunity->client_id) {
+                    // Créer le client à partir des informations de l'opportunité
+                    $client = Client::firstOrCreate(
+                        [
+                            'telephone' => $opportunity->telephone,
+                        ],
+                        [
+                            'nom' => $opportunity->nom,
+                            'prenoms' => $opportunity->prenoms,
+                            'telephone2' => $opportunity->telephone2,
+                        ]
+                    );
+                    $validated['client_id'] = $client->id;
+
+                    Log::info('Client ID: ' . $client->id . ' créé automatiquement à partir de l\'opportunité ID: ' . $opportunity->id);
+
+                    // Créer un contrat en utilisant le ContractController::store
+                    $insurancePartner = InsurancePartner::where('name', $validated['assureur_actuel'])->first();
+                    
+                    if ($insurancePartner) {
+                        $contractData = [
+                            'opportunity_id' => $opportunity->id,
+                            'insurance_partner_id' => $insurancePartner->id,
+                            'client_id' => $validated['client_id'],
+                            'contract_number' => $this->generateContractNumber($opportunity->id),
+                            'contract_start_date' => now()->format('Y-m-d'),
+                            'contract_end_date' => now()->addYear()->format('Y-m-d'),
+                            'contract_duration' => $validated['contract_duration'] ?? null,
+                            'net_premium' => $validated['montant_nette_prime'] ?? 0,
+                            'ttc_premium' => $validated['montant_ttc'] ?? 0,
+                            'commission_rate' => $insurancePartner->commission_rate ?? 0,
+                            'commission_amount' => ($validated['montant_ttc'] ?? 0) * (($insurancePartner->commission_rate ?? 0) / 100),
+                            'contract_document' => $validated['contrat_assurance'] ?? null,
+                            'attestation_document' => $validated['url_attestationassurance'] ?? null,
+                            'payment_proof' => $validated['capture_paiement'] ?? null,
+                            'status' => 'active',
+                            'observations' => 'Contrat créé automatiquement à partir de l\'opportunité #' . $opportunity->id,
+                        ];
+
+                        // Créer un Request simulé pour appeler la méthode store du ContractController
+                        $contractRequest = Request::create('/contracts', 'POST', $contractData);
+                        $contractRequest->setUserResolver(fn() => $request->user());
+                    
+                        // Appeler la méthode store du ContractController
+                        $contractController = new ContractController();
+                        try {
+                            $contractController->store($contractRequest);
+                            Log::info('Contrat créé automatiquement à partir de l\'opportunité ID: ' . $opportunity->id);
+                        } catch (\Exception $e) {
+                            Log::error('Erreur lors de la création automatique du contrat: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
             // Extraire le commentaire avant mise à jour
             $commentBody = $validated['body'] ?? null;
             unset($validated['body']);
 
+            // Retirer les champs qui n'existent pas dans la table opportunities
+            unset($validated['contract_duration']);
+            unset($validated['montant_nette_prime']);
+            unset($validated['montant_ttc']);
+            unset($validated['contrat_assurance']);
+            unset($validated['capture_paiement']);
+
             // Mettre à jour l'opportunité
-            $opportunity->update($validated);
+           $opportunity->update($validated);
 
             // Créer le commentaire s'il existe
             if (!empty($commentBody)) {
@@ -329,8 +442,6 @@ class OpportunityController extends Controller
                     'body' => $commentBody,
                 ]);
             }
-
-            // mettre en place la creation du contrat quand le status de l opportunite est gagne
 
             log::info('Opportunité ID: ' . $opportunity->id . ' mise à jour avec succès par l\'utilisateur ID: ' . $request->user()->id);
 

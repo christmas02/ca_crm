@@ -126,9 +126,9 @@ class ContractController extends Controller
                 'ttc_premium' => 'nullable|numeric|min:0',
                 'commission_amount' => 'nullable|numeric|min:0',
                 'commission_rate' => 'nullable|numeric|min:0|max:100',
-                'contract_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'attestation_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'payment_proof' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'contract_document' => 'nullable|string',
+                'attestation_document' => 'nullable|string',
+                'payment_proof' => 'nullable|string',
                 'status' => 'required|in:active,inactive,terminated,renewed',
                 'observations' => 'nullable|string',
             ]);
@@ -142,27 +142,7 @@ class ContractController extends Controller
 
             $validated['created_by'] = $request->user()->id;
 
-            // Gérer les fichiers
-            if ($request->hasFile('contract_document')) {
-                $validated['contract_document'] = $this->storeFile(
-                    $request->file('contract_document'),
-                    'documents/contracts'
-                );
-            }
-
-            if ($request->hasFile('attestation_document')) {
-                $validated['attestation_document'] = $this->storeFile(
-                    $request->file('attestation_document'),
-                    'documents/attestations'
-                );
-            }
-
-            if ($request->hasFile('payment_proof')) {
-                $validated['payment_proof'] = $this->storeFile(
-                    $request->file('payment_proof'),
-                    'documents/payment_proofs'
-                );
-            }
+            //
 
             Contract::create($validated);
             Log::info('Contrat créé avec succès par l\'utilisateur ID: ' . $request->user()->id);
