@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Opportunities
     Route::get('opportunities/new', [OpportunityController::class, 'listNewOpportunities'])->name('opportunities.new');
+    Route::get('opportunities/renewals', [OpportunityController::class, 'listRenewals'])->name('opportunities.renewals');
     Route::resource('opportunities', OpportunityController::class);
     Route::post('opportunities/{opportunity}/assign', [OpportunityController::class, 'assign'])->name('opportunities.ass ign');
     Route::post('opportunities/{opportunity}/status', [OpportunityController::class, 'changeStatus'])->name('opportunities.change-status');

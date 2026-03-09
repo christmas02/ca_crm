@@ -126,6 +126,13 @@ class OpportunityController extends Controller
         } elseif ($user->isAgentTerrain()) {
             // Si c'est un Agent Terrain : affiche seulement celles qu'il a créées
             $query->where('created_by', $user->id);
+
+        } elseif ($user->isAgentConseilRenouvellement()) {
+            // Si c'est un Agent Conseil Renouvellement : affiche seulement les opportunités gagnées
+            $gagneStatusId = Status::where('slug', 'gagne')->first()?->id;
+            if ($gagneStatusId) {
+                $query->where('status_id', $gagneStatusId);
+            }
         }
         // Sinon (Admin) : affiche tout
 
@@ -205,6 +212,32 @@ class OpportunityController extends Controller
 
         // 7. Affiche la vue avec les opportunités et statuts
         return view('opportunities.index', compact('opportunities', 'statuses'));
+    }
+
+    public function listRenewals()
+    {
+        // 1. Récupère l'utilisateur connecté
+        $user = auth()->user();
+
+        // 2. Vérifier que c'est un Agent Conseil Renouvellement
+        if (!$user->isAgentConseilRenouvellement()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        // 3. Récupérer le statut "Gagné"
+        $gagneStatus = Status::where('slug', 'gagne')->first();
+        if (!$gagneStatus) {
+            return view('opportunities.renewals', ['opportunities' => collect(), 'user' => $user]);
+        }
+
+        // 4. Récupérer toutes les opportunités gagnées (pas de limite d'assignation pour ce rôle)
+        $opportunities = Opportunity::where('status_id', $gagneStatus->id)
+            ->with(['status', 'client', 'creator', 'team', 'insurancePartner', 'comments'])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('opportunities.renewals', compact('opportunities', 'user'));
     }
 
 
@@ -292,6 +325,7 @@ class OpportunityController extends Controller
 
     public function update(Request $request, Opportunity $opportunity)
     {
+        // dd($request->all());
         try {
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',
@@ -363,6 +397,8 @@ class OpportunityController extends Controller
                 $validated['contrat_assurance'] = $opportunity->contrat_assurance ?? null;
             }
 
+         
+
             // creer le client automatiquement si le statut passe à gagné et qu'il n'existe pas déjà 
             if (isset($validated['status_id']) && $validated['status_id'] != $opportunity->status_id) {
                 $newStatus = Status::find($validated['status_id']);
@@ -384,7 +420,6 @@ class OpportunityController extends Controller
 
                     // Créer un contrat en utilisant le ContractController::store
                     $insurancePartner = InsurancePartner::where('name', $validated['assureur_actuel'])->first();
-                    
                     if ($insurancePartner) {
                         $contractData = [
                             'opportunity_id' => $opportunity->id,
@@ -419,21 +454,10 @@ class OpportunityController extends Controller
                         }
                     }
                 }
-            }
-
-            // Extraire le commentaire avant mise à jour
-            $commentBody = $validated['body'] ?? null;
-            unset($validated['body']);
-
-            // Retirer les champs qui n'existent pas dans la table opportunities
-            unset($validated['contract_duration']);
-            unset($validated['montant_nette_prime']);
-            unset($validated['montant_ttc']);
-            unset($validated['contrat_assurance']);
-            unset($validated['capture_paiement']);
+            } 
 
             // Mettre à jour l'opportunité
-           $opportunity->update($validated);
+            $opportunity->update($validated);
 
             // Créer le commentaire s'il existe
             if (!empty($commentBody)) {

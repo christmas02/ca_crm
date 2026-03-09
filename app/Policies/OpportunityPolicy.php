@@ -18,6 +18,11 @@ class OpportunityPolicy
             return true;
         }
 
+        // Agent Conseil Renouvellement ne peut voir que les opportunités gagnées
+        if ($user->isAgentConseilRenouvellement()) {
+            return $opportunity->status()->exists() && $opportunity->status->slug === 'gagne';
+        }
+
         return $opportunity->created_by === $user->id
             || $opportunity->assigned_to === $user->id;
     }
@@ -33,6 +38,11 @@ class OpportunityPolicy
             return true;
         }
 
+        // Agent Conseil Renouvellement peut mettre à jour les opportunités gagnées
+        if ($user->isAgentConseilRenouvellement()) {
+            return $opportunity->status()->exists() && $opportunity->status->slug === 'gagne';
+        }
+
         return $opportunity->assigned_to === $user->id;
     }
 
@@ -45,6 +55,11 @@ class OpportunityPolicy
     {
         if ($user->isAdmin() || $user->isLead()) {
             return true;
+        }
+
+        // Agent Conseil Renouvellement peut uniquement voir les opportunités gagnées, pas changer leur statut
+        if ($user->isAgentConseilRenouvellement()) {
+            return false;
         }
 
         return $opportunity->assigned_to === $user->id;
