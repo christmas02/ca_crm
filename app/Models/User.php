@@ -80,4 +80,9 @@ class User extends Authenticatable
     {
         return $this->hasRole('agent_terrain');
     }
+
+    public function isAgentConseilRenouvellement()
+    {
+        return $this->hasRole('agent_conseil_renouvellement');
+    }
 }

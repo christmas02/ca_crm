@@ -118,7 +118,7 @@ class DashboardController extends Controller
             // Total opportunités assignées
             [
                 'label' => 'Total assignées',
-                'value' => Opportunity::where('assigned_to', $user->id)->count(),
+                'value' => Opportunity::where('assigned_to', $user->id)->where('status_id', '!=' ,'7')->count(),
                 'color' => '#6366f1',
                 'icon' => '📊'
             ],

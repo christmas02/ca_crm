@@ -14,8 +14,13 @@ class OpportunityPolicy
 
     public function view(User $user, Opportunity $opportunity)
     {
-        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil()) {
+        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil() || $user->isAgentConseilRenouvellement() ) {
             return true;
+        }
+
+        // Agent Conseil Renouvellement ne peut voir que les opportunités gagnées
+        if ($user->isAgentConseilRenouvellement()) {
+            return $opportunity->status()->exists() && $opportunity->status->slug === 'gagne';
         }
 
         return $opportunity->created_by === $user->id
@@ -24,13 +29,18 @@ class OpportunityPolicy
 
     public function create(User $user)
     {
-        return $user->hasAnyRole(['admin', 'lead', 'agent_terrain','agent_conseil']);
+        return $user->hasAnyRole(['admin', 'lead', 'agent_terrain','agent_conseil', 'agent_conseil_renouvellement']);
     }
 
     public function update(User $user, Opportunity $opportunity)
     {
         if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil()) {
             return true;
+        }
+
+        // Agent Conseil Renouvellement peut mettre à jour les opportunités gagnées
+        if ($user->isAgentConseilRenouvellement()) {
+            return $opportunity->status()->exists() && $opportunity->status->slug === 'gagne';
         }
 
         return $opportunity->assigned_to === $user->id;
@@ -45,6 +55,11 @@ class OpportunityPolicy
     {
         if ($user->isAdmin() || $user->isLead()) {
             return true;
+        }
+
+        // Agent Conseil Renouvellement peut uniquement voir les opportunités gagnées, pas changer leur statut
+        if ($user->isAgentConseilRenouvellement()) {
+            return false;
         }
 
         return $opportunity->assigned_to === $user->id;

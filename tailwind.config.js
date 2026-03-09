@@ -7,6 +7,22 @@ module.exports = {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
     ],
+    
+    safelist: [
+        // Classes dynamiques pour les boutons de discours
+        'border-emerald-500',
+        'bg-emerald-50',
+        'text-emerald-700',
+        'border-rose-500',
+        'bg-rose-50',
+        'text-rose-700',
+        'border-gray-300',
+        'bg-gray-100',
+        'text-gray-600',
+        'hover:border-gray-400',
+        'font-semibold',
+        'shadow-sm',
+    ],
 
     theme: {
         extend: {
