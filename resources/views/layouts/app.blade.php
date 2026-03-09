@@ -50,6 +50,10 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     Toutes les opportunités
                 </a>
+                <a href="{{ route('opportunities.renewals') }}" class="sidebar-link {{ request()->routeIs('opportunities.renewals') ? 'active' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    Opportunités à renouvellement
+                </a>
                 @endif
 
                 @if(auth()->user()->isAgentConseil())
@@ -59,10 +63,12 @@
                 </a>
                 @endif
 
-                {{--<a href="{{ route('opportunities.new') }}" class="sidebar-link {{ request()->routeIs('opportunities.new') ? 'active' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12a2 2 0 104 0 2 2 0 00-4 0zm7-2a2 2 0 110-4 2 2 0 010 4zM5.728 11.694a6 6 0 018.546 0M5.727 17.25a3 3 0 017.546 0"/></svg>
-                    Opportunités nouvelles
-                </a>  --}}
+                @if(auth()->user()->isAgentConseilRenouvellement())
+                <a href="{{ route('opportunities.new') }}" class="sidebar-link {{ request()->routeIs('opportunities.renewals') ? 'active' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                    Mes Opportunités 
+                </a>
+                @endif
 
                 @can('create', App\Models\Opportunity::class)
                 <a href="{{ route('opportunities.create') }}" class="sidebar-link {{ request()->routeIs('opportunities.create') ? 'active' : '' }}">

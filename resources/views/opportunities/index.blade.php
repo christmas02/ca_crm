@@ -44,7 +44,7 @@
     {{-- Table --}}
     <div class="card" x-data="{ selectedIds: [], allChecked: false }">
         {{-- Bulk actions bar --}}
-        @if(!auth()->user()->isAgentConseil())
+        @if(!auth()->user()->isAgentConseil() && !auth()->user()->isAgentConseilRenouvellement())
         <div x-show="selectedIds.length > 0" class="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
             <span class="text-sm font-medium text-blue-800">
                 <span x-text="selectedIds.length"></span> opportunité(s) sélectionnée(s)
@@ -60,10 +60,10 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        @if(!auth()->user()->isAgentConseil())
+                        @if(!auth()->user()->isAgentConseil() && !auth()->user()->isAgentConseilRenouvellement())
                         <th class="w-10">
                             <input type="checkbox"
-                                @change="allChecked = $el.checked; selectedIds = allChecked ? Array.from(document.querySelectorAll('input[name=opportunity_ids]')).map(el => el.value) : []"
+                                @change="allChecked = $el.checked; selectedIds = allChecked ? Array.from(document.querySelectorAll('input.opportunity-checkbox')).map(el => el.value) : []; document.querySelectorAll('input.opportunity-checkbox').forEach(el => el.checked = allChecked)"
                                 :checked="allChecked"
                                 class="rounded">
                         </th>
@@ -80,13 +80,13 @@
                 <tbody>
                     @forelse($opportunities as $opp)
                     <tr>
-                        @if(!auth()->user()->isAgentConseil())
+                        @if(!auth()->user()->isAgentConseil() && !auth()->user()->isAgentConseilRenouvellement())
                         <td class="w-10">
                             <input type="checkbox"
                                 name="opportunity_ids"
                                 value="{{ $opp->id }}"
                                 @change="selectedIds.includes(String($el.value)) ? selectedIds = selectedIds.filter(id => id !== String($el.value)) : selectedIds.push(String($el.value)); allChecked = false"
-                                class="rounded"
+                                class="rounded opportunity-checkbox"
                             >
                         </td>
                         @endif
@@ -153,6 +153,11 @@
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date d'affectation</label>
+                    <input type="date" name="date_affect" value="{{ date('Y-m-d') }}" class="w-full" required>
                 </div>
 
                 <div class="flex gap-3 justify-end">

@@ -73,4 +73,9 @@ class Opportunity extends Model
     {
         return $this->belongsTo(InsurancePartner::class);
     }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
 }

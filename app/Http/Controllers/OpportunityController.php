@@ -174,19 +174,26 @@ class OpportunityController extends Controller
         // 2. Obtient la date d'aujourd'hui (minuit) pour les comparaisons
         $today = now()->startOfDay();
 
-        // 3. Construit une requête complexe
-        // Récupère les IDs des statuts à exclure
-        $excludeStatusIds = Status::whereIn('slug', ['gagne', 'perdus'])->pluck('id')->toArray();
-
         $query = Opportunity::with(['status', 'assignee', 'creator', 'team'])
             // Joins la table assignments pour accéder aux données d'assignation
             ->join('assignments', 'opportunities.id', '=', 'assignments.opportunity_id')
             // Filtre: seulement les opportunités assignées AU consultant connecté
             ->where('assignments.assigned_to', $user->id)
             // Filtre: seulement les assignations actives (pas les anciennes)
-            ->where('assignments.status', 'active')
-            // Filtre: exclure les statuts "Gagné" et "Perdus"
-            ->whereNotIn('opportunities.status_id', $excludeStatusIds);
+            ->where('assignments.status', 'active');
+
+        // 3. Filtrer par statut selon le rôle
+        if ($user->isAgentConseilRenouvellement()) {
+            // Les agents conseil renouvellement voient SEULEMENT les opportunités gagnées
+            $gagneStatusId = Status::where('slug', 'gagne')->first()?->id;
+            if ($gagneStatusId) {
+                $query->where('opportunities.status_id', $gagneStatusId);
+            }
+        } else {
+            // Les autres rôles excluent "Gagné" et "Perdus"
+            $excludeStatusIds = Status::whereIn('slug', ['gagne', 'perdus'])->pluck('id')->toArray();
+            $query->whereNotIn('opportunities.status_id', $excludeStatusIds);
+        }
 
             // Affiche l'opportunité si elle remplit AU MOINS UNE de ces conditions:
         $query->where(function ($q) use ($today) {
@@ -219,25 +226,23 @@ class OpportunityController extends Controller
         // 1. Récupère l'utilisateur connecté
         $user = auth()->user();
 
-        // 2. Vérifier que c'est un Agent Conseil Renouvellement
-        if (!$user->isAgentConseilRenouvellement()) {
+        // 2. Vérifier que c'est un Admin ou Lead
+        if (!($user->isAdmin() || $user->isLead())) {
             abort(403, 'Accès non autorisé');
         }
 
-        // 3. Récupérer le statut "Gagné"
-        $gagneStatus = Status::where('slug', 'gagne')->first();
-        if (!$gagneStatus) {
-            return view('opportunities.renewals', ['opportunities' => collect(), 'user' => $user]);
-        }
-
-        // 4. Récupérer toutes les opportunités gagnées (pas de limite d'assignation pour ce rôle)
-        $opportunities = Opportunity::where('status_id', $gagneStatus->id)
-            ->with(['status', 'client', 'creator', 'team', 'insurancePartner', 'comments'])
+        // 3. Récupérer toutes les opportunités qui ont au moins un contrat
+        // Groupées par opportunity_id (au cas où plusieurs contrats par opportunité)
+        $opportunities = Opportunity::whereHas('contracts')
+            ->with(['status', 'client', 'creator', 'team', 'insurancePartner', 'comments', 'contracts'])
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
-        return view('opportunities.renewals', compact('opportunities', 'user'));
+        // 4. Récupérer tous les statuts pour les filtres
+        $statuses = Status::orderBy('order')->orderBy('name')->get();
+
+        return view('opportunities.renewals', compact('opportunities', 'statuses', 'user'));
     }
 
 
@@ -524,41 +529,50 @@ class OpportunityController extends Controller
     }
 
     public function bulkAssign(Request $request)
-    {
-        $validated = $request->validate([
-            'opportunity_ids' => 'required|string',
-            'assigned_to' => 'required|exists:users,id',
-        ]);
-
-        $ids = array_filter(explode(',', $validated['opportunity_ids']));
-
-        if (empty($ids)) {
-            return redirect()->route('opportunities.index')
-                ->with('error', 'Aucune opportunité sélectionnée.');
-        }
-
-        Opportunity::whereIn('id', $ids)->update(['assigned_to' => $validated['assigned_to']]);
-
-        // Créer les assignations pour chaque opportunité
-        foreach ($ids as $opportunityId) {
-            // Mettre les assignations actives existantes à inactive
-            Assignment::where('opportunity_id', $opportunityId)
-                ->where('status', 'active')
-                ->update(['status' => 'inactive']);
-
-            // Créer la nouvelle assignation
-            Assignment::create([
-                'opportunity_id' => $opportunityId,
-                'assigned_by' => $request->user()->id,
-                'assigned_to' => $validated['assigned_to'],
-                'status' => 'active',
-                'date_affect' => now(),
+    { 
+        try {
+            
+            $validated = $request->validate([
+                'opportunity_ids' => 'required|string',
+                'assigned_to' => 'required|exists:users,id',
+                'date_affect' => 'required|date',
             ]);
-        }
 
-        $count = count($ids);
-        return redirect()->route('opportunities.index')
-            ->with('success', $count . ' opportunité(s) affectée(s) avec succès.');
+            $ids = array_filter(explode(',', $validated['opportunity_ids']));
+
+            if (empty($ids)) {
+                return redirect()->route('opportunities.index')
+                    ->with('error', 'Aucune opportunité sélectionnée.');
+            }
+
+            Opportunity::whereIn('id', $ids)->update(['assigned_to' => $validated['assigned_to']]);
+
+            // Créer les assignations pour chaque opportunité
+            foreach ($ids as $opportunityId) {
+                // Mettre les assignations actives existantes à inactive
+                Assignment::where('opportunity_id', $opportunityId)
+                    ->where('status', 'active')
+                    ->update(['status' => 'inactive']);
+
+                // Créer la nouvelle assignation avec la date fournie
+                Assignment::create([
+                    'opportunity_id' => $opportunityId,
+                    'assigned_by' => $request->user()->id,
+                    'assigned_to' => $validated['assigned_to'],
+                    'status' => 'active',
+                    'date_affect' => $validated['date_affect'],
+                ]);
+            }
+
+            $count = count($ids);
+            return redirect()->route('opportunities.index')
+                ->with('success', $count . ' opportunité(s) affectée(s) avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'affectation en masse: ' . $e->getMessage());
+            return redirect()->route('opportunities.index')
+                ->with('error', 'Une erreur est survenue lors de l\'affectation en masse. Veuillez réessayer.');
+
+        }
     }
 
     public function changeStatus(Request $request, Opportunity $opportunity)
