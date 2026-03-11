@@ -17,6 +17,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'team_id',
+        'actif',
     ];
 
     protected $hidden = [
@@ -24,7 +25,9 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [];
+    protected $casts = [
+        'actif' => 'boolean',
+    ];
 
     public function role()
     {
