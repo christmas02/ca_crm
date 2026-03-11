@@ -22,7 +22,7 @@
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold text-gray-800">CA <span class="text-primary-400">CRM</span></h1>
-                            <p class="text-xs text-gray-400">Call Center Assurances</p>
+                            <p class="text-xs text-gray-400">ConseilsAssur</p>
                         </div>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800">Bon retour !</h2>

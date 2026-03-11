@@ -21,7 +21,7 @@
                     </div>
                     <div>
                         <h1 class="text-lg font-bold text-gray-800">CA <span class="text-primary-400">CRM</span></h1>
-                        <p class="text-[10px] text-gray-400 -mt-0.5">Call Center Assurances</p>
+                        <p class="text-[10px] text-gray-400 -mt-0.5">ConseilsAssur </p>
                     </div>
                 </div>
             </div>

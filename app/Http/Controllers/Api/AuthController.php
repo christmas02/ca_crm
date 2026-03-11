@@ -27,11 +27,11 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (!$user->actif) {
-            return response()->json([
-                'message' => 'Compte désactivé. Contactez votre administrateur.',
-            ], 403);
-        }
+        //if (!$user->actif) {
+          //  return response()->json([
+            //    'message' => 'Compte désactivé. Contactez votre administrateur.',
+           // ], 403);
+        //}
 
         // Révoquer les anciens tokens pour éviter l'accumulation
         $user->tokens()->delete();
