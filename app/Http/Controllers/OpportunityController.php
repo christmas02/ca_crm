@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ContractController;
 
 class OpportunityController extends Controller
@@ -184,11 +185,9 @@ class OpportunityController extends Controller
 
         // 3. Filtrer par statut selon le rôle
         if ($user->isAgentConseilRenouvellement()) {
-            // Les agents conseil renouvellement voient SEULEMENT les opportunités gagnées
-            $gagneStatusId = Status::where('slug', 'gagne')->first()?->id;
-            if ($gagneStatusId) {
-                $query->where('opportunities.status_id', $gagneStatusId);
-            }
+            // Les autres rôles excluent "Nouvelle" et "Perdus"
+            $excludeStatusIds = Status::whereIn('slug', ['nouvelle', 'perdus'])->pluck('id')->toArray();
+            $query->whereNotIn('opportunities.status_id', $excludeStatusIds);
         } else {
             // Les autres rôles excluent "Gagné" et "Perdus"
             $excludeStatusIds = Status::whereIn('slug', ['gagne', 'perdus'])->pluck('id')->toArray();
@@ -211,14 +210,19 @@ class OpportunityController extends Controller
             });
         })->select('opportunities.*');
 
-        // 5. Récupère les résultats avec pagination (15 par page)
-        $opportunities = $query->latest('opportunities.updated_at')->paginate(15);
-        
         // 6. Récupère tous les statuts disponibles pour les filtres
         $statuses = Status::orderBy('order')->orderBy('name')->get();
 
-        // 7. Affiche la vue avec les opportunités et statuts
-        return view('opportunities.index', compact('opportunities', 'statuses'));
+        // 5. Récupère les résultats avec pagination (15 par page)
+        // Tri par date d'échéance pour les agents renouvellement, sinon par dernière mise à jour
+        if ($user->isAgentConseilRenouvellement()) {
+            $opportunities = $query->orderBy('opportunities.echeance', 'desc')->paginate(15);
+            return view('opportunities.renewals', compact('opportunities', 'statuses'));
+        } else {
+            $opportunities = $query->latest('opportunities.updated_at')->paginate(15);
+              // 7. Affiche la vue avec les opportunités et statuts
+            return view('opportunities.index', compact('opportunities', 'statuses'));
+        }
     }
 
     public function listRenewals()
@@ -330,7 +334,7 @@ class OpportunityController extends Controller
 
     public function update(Request $request, Opportunity $opportunity)
     {
-        // dd($request->all());
+        //dd($request->all());
         try {
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',
@@ -353,9 +357,7 @@ class OpportunityController extends Controller
                 'statut_carte_grise' => 'nullable|string|max:255',
                 'statut_attestation' => 'nullable|string|max:255',
                 'status_id' => 'nullable|exists:statuses,id',
-                'contract_duration' => 'nullable|integer',
                 'montant_nette_prime' => 'nullable|numeric',
-                'montant_ttc' => 'nullable|numeric',
                 'contrat_assurance' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'duree_contrat' => 'nullable|string|max:255',
                 'capture_paiement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -402,28 +404,34 @@ class OpportunityController extends Controller
                 $validated['contrat_assurance'] = $opportunity->contrat_assurance ?? null;
             }
 
-         
-
+            // Transaction de base de données - assure l'intégrité des données
+            DB::beginTransaction();
+           
             // creer le client automatiquement si le statut passe à gagné et qu'il n'existe pas déjà 
-            if (isset($validated['status_id']) && $validated['status_id'] != $opportunity->status_id) {
+            if (isset($validated['status_id']) && $validated['status_id'] == 7) {
                 $newStatus = Status::find($validated['status_id']);
-                if ($newStatus->slug === 'gagne' && !$opportunity->client_id) {
-                    // Créer le client à partir des informations de l'opportunité
-                    $client = Client::firstOrCreate(
-                        [
-                            'telephone' => $opportunity->telephone,
-                        ],
-                        [
-                            'nom' => $opportunity->nom,
-                            'prenoms' => $opportunity->prenoms,
-                            'telephone2' => $opportunity->telephone2,
-                        ]
-                    );
-                    $validated['client_id'] = $client->id;
+                if ($newStatus->slug === 'gagne') {
+                    // Créer le client SEULEMENT si l'opportunité n'a pas de client_id
+                    if (!$opportunity->client_id) {
+                        // Créer le client à partir des informations de l'opportunité
+                        $client = Client::firstOrCreate(
+                            [
+                                'telephone' => $opportunity->telephone,
+                            ],
+                            [
+                                'nom' => $opportunity->nom,
+                                'prenoms' => $opportunity->prenoms,
+                                'telephone2' => $opportunity->telephone2,
+                            ]
+                        );
+                        
+                        $validated['client_id'] = $client->id ;
 
-                    Log::info('Client ID: ' . $client->id . ' créé automatiquement à partir de l\'opportunité ID: ' . $opportunity->id);
-
-                    // Créer un contrat en utilisant le ContractController::store
+                        Log::info('Client ID: ' . $client->id . ' créé automatiquement à partir de l\'opportunité ID: ' . $opportunity->id);
+                    } else {
+                        $validated['client_id'] = $opportunity->client_id ;
+                        Log::info('Opportunité ID: ' . $opportunity->id . ' a déjà un client associé (ID: ' . $opportunity->client_id . ')');
+                    }
                     $insurancePartner = InsurancePartner::where('name', $validated['assureur_actuel'])->first();
                     if ($insurancePartner) {
                         $contractData = [
@@ -433,51 +441,49 @@ class OpportunityController extends Controller
                             'contract_number' => $this->generateContractNumber($opportunity->id),
                             'contract_start_date' => now()->format('Y-m-d'),
                             'contract_end_date' => now()->addYear()->format('Y-m-d'),
-                            'contract_duration' => $validated['contract_duration'] ?? null,
+                            'contract_duration' => $validated['periode_souscription'] ?? null,
                             'net_premium' => $validated['montant_nette_prime'] ?? 0,
-                            'ttc_premium' => $validated['montant_ttc'] ?? 0,
+                            'ttc_premium' => $validated['montant_souscription'] ?? 0,
                             'commission_rate' => $insurancePartner->commission_rate ?? 0,
-                            'commission_amount' => ($validated['montant_ttc'] ?? 0) * (($insurancePartner->commission_rate ?? 0) / 100),
+                            'commission_amount' => ($validated['montant_souscription'] ?? 0) * (($insurancePartner->commission_rate ?? 0) / 100),
                             'contract_document' => $validated['contrat_assurance'] ?? null,
                             'attestation_document' => $validated['url_attestationassurance'] ?? null,
                             'payment_proof' => $validated['capture_paiement'] ?? null,
                             'status' => 'active',
                             'observations' => 'Contrat créé automatiquement à partir de l\'opportunité #' . $opportunity->id,
+                            'created_by' => $request->user()->id,
                         ];
 
-                        // Créer un Request simulé pour appeler la méthode store du ContractController
-                        $contractRequest = Request::create('/contracts', 'POST', $contractData);
-                        $contractRequest->setUserResolver(fn() => $request->user());
-                    
-                        // Appeler la méthode store du ContractController
-                        $contractController = new ContractController();
+                        // Créer le contrat directement sans passer par le ContractController
                         try {
-                            $contractController->store($contractRequest);
+                            Contract::create($contractData);
                             Log::info('Contrat créé automatiquement à partir de l\'opportunité ID: ' . $opportunity->id);
                         } catch (\Exception $e) {
                             Log::error('Erreur lors de la création automatique du contrat: ' . $e->getMessage());
                         }
-                    }
+                    }    
+                    
                 }
             } 
 
             // Mettre à jour l'opportunité
             $opportunity->update($validated);
 
-            // Créer le commentaire s'il existe
-            if (!empty($commentBody)) {
-                $opportunity->comments()->create([
-                    'user_id' => $request->user()->id,
-                    'body' => $commentBody,
-                ]);
-            }
+            // Créer le commentaire s'il existe un champ "body" dans le formulaire (pour ajouter un commentaire lors de la mise à jour)
+            $opportunity->comments()->create([
+                'user_id' => $request->user()->id,
+                'body' => $validated['body'],
+            ]);
 
-            log::info('Opportunité ID: ' . $opportunity->id . ' mise à jour avec succès par l\'utilisateur ID: ' . $request->user()->id);
+            DB::commit();
+        
+            Log::info('Opportunité ID: ' . $opportunity->id . ' mise à jour avec succès par l\'utilisateur ID: ' . $request->user()->id);
 
             return redirect()->route('opportunities.show', $opportunity)
                 ->with('success', 'Opportunité mise à jour.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Erreur lors de la mise à jour de l\'opportunité ID: ' . $opportunity->id . ' - ' . $e->getMessage());
             return redirect()->route('opportunities.edit', $opportunity)
                 ->withInput($request->all())
@@ -531,7 +537,6 @@ class OpportunityController extends Controller
     public function bulkAssign(Request $request)
     { 
         try {
-            
             $validated = $request->validate([
                 'opportunity_ids' => 'required|string',
                 'assigned_to' => 'required|exists:users,id',
@@ -545,24 +550,27 @@ class OpportunityController extends Controller
                     ->with('error', 'Aucune opportunité sélectionnée.');
             }
 
-            Opportunity::whereIn('id', $ids)->update(['assigned_to' => $validated['assigned_to']]);
+            // Transaction de base de données - assure l'intégrité des données
+            DB::transaction(function () use ($ids, $validated, $request) {
+                Opportunity::whereIn('id', $ids)->update(['assigned_to' => $validated['assigned_to']]);
 
-            // Créer les assignations pour chaque opportunité
-            foreach ($ids as $opportunityId) {
-                // Mettre les assignations actives existantes à inactive
-                Assignment::where('opportunity_id', $opportunityId)
-                    ->where('status', 'active')
-                    ->update(['status' => 'inactive']);
+                // Créer les assignations pour chaque opportunité
+                foreach ($ids as $opportunityId) {
+                    // Mettre les assignations actives existantes à inactive
+                    Assignment::where('opportunity_id', $opportunityId)
+                        ->where('status', 'active')
+                        ->update(['status' => 'inactive']);
 
-                // Créer la nouvelle assignation avec la date fournie
-                Assignment::create([
-                    'opportunity_id' => $opportunityId,
-                    'assigned_by' => $request->user()->id,
-                    'assigned_to' => $validated['assigned_to'],
-                    'status' => 'active',
-                    'date_affect' => $validated['date_affect'],
-                ]);
-            }
+                    // Créer la nouvelle assignation avec la date fournie
+                    Assignment::create([
+                        'opportunity_id' => $opportunityId,
+                        'assigned_by' => $request->user()->id,
+                        'assigned_to' => $validated['assigned_to'],
+                        'status' => 'active',
+                        'date_affect' => $validated['date_affect'],
+                    ]);
+                }
+            });
 
             $count = count($ids);
             return redirect()->route('opportunities.index')

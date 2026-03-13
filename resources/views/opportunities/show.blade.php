@@ -51,7 +51,6 @@
                             <div><dt class="text-gray-400 text-xs">Assigné à</dt><dd class="mt-0.5">{{ $opportunity->assignee->name ?? 'Non assigné' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Équipe</dt><dd class="mt-0.5">{{ $opportunity->team->name ?? '—' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Canal</dt><dd class="mt-0.5">{{ $opportunity->canal ?? '—' }}</dd></div>
-                            <div><dt class="text-gray-400 text-xs">Source</dt><dd class="mt-0.5">{{ $opportunity->source ?? '—' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Date de création</dt><dd class="mt-0.5">{{ $opportunity->created_at->format('d/m/Y H:i') }}</dd></div>
                         </dl>
                     </div>

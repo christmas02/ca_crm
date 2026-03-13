@@ -34,7 +34,7 @@ class OpportunityPolicy
 
     public function update(User $user, Opportunity $opportunity)
     {
-        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil()) {
+        if ($user->isAdmin() || $user->isLead() || $user->isAgentTerrain() || $user->isAgentConseil() || $user->isAgentConseilRenouvellement() ) {
             return true;
         }
 
