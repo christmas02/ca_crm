@@ -157,7 +157,17 @@ class OpportunityController extends Controller
             });
         }
 
-        // 6. RÉSULTATS
+        // 6. FILTRAGE PAR PLAGE DE DATES (optionnel)
+        // Filtre par date de début d'échéance
+        if ($request->filled('date_start')) {
+            $query->where('echeance', '>=', $request->date_start);
+        }
+        // Filtre par date de fin d'échéance
+        if ($request->filled('date_end')) {
+            $query->where('echeance', '<=', $request->date_end);
+        }
+
+        // 7. RÉSULTATS
         // Récupère les opportunités (triées par plus récentes) avec pagination 15 par page
         $opportunities = $query->latest()->paginate(15)->withQueryString();
         
@@ -216,7 +226,7 @@ class OpportunityController extends Controller
         // 5. Récupère les résultats avec pagination (15 par page)
         // Tri par date d'échéance pour les agents renouvellement, sinon par dernière mise à jour
         if ($user->isAgentConseilRenouvellement()) {
-            $opportunities = $query->orderBy('opportunities.echeance', 'desc')->paginate(15);
+            $opportunities = $query->orderBy('opportunities.echeance', 'asc')->paginate(15);
             return view('opportunities.renewals', compact('opportunities', 'statuses'));
         } else {
             $opportunities = $query->latest('opportunities.updated_at')->paginate(15);
@@ -240,6 +250,7 @@ class OpportunityController extends Controller
         $opportunities = Opportunity::whereHas('contracts')
             ->with(['status', 'client', 'creator', 'team', 'insurancePartner', 'comments', 'contracts'])
             ->latest()
+            ->orderBy('opportunities.echeance', 'asc')
             ->paginate(20)
             ->withQueryString();
 
