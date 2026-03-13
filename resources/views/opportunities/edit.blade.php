@@ -65,7 +65,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="echeance" class="form-label">Date d'échéance assurance</label>
-                                <input type="date" id="echeance" name="echeance" value="{{ old('echeance', $opportunity->echeance?->format('Y-m-d')) }}" class="form-input">
+                                <input type="date" id="echeance" required name="echeance" value="{{ old('echeance', $opportunity->echeance?->format('Y-m-d')) }}" class="form-input">
                             </div>
                             <div class="form-group">
                                 <label for="lieuprospection" class="form-label">Lieu de prospection</label>
@@ -73,15 +73,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="assureur_actuel" class="form-label">Assureur actuel</label>
-                                <select id="assureur_actuel" name="assureur_actuel" class="form-input">
-                                    <option value="">-- Sélectionner un assureur --</option>
-                                    @foreach($insurancePartners as $partner)
-                                    <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
-                                        {{ $partner->name }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <input type="text" id="assureur_actuel" name="assureur_actuel" value="{{ old('assureur_actuel', $opportunity->assureur_actuel) }}" class="form-input">                            </div>
                         </div>
                     </div>
 
@@ -160,7 +152,9 @@
                                 <select id="status_id" name="status_id" class="form-select" onchange="checkClientGagne(this)">
                                     <option value="">Sélectionner</option>
                                     @foreach($statuses as $status)
+                                        @if(!(auth()->user()->isAgentConseilRenouvellement() && $status->slug === 'nouvelle'))
                                         <option value="{{ $status->id }}" data-slug="{{ $status->slug }}" {{ old('status_id', $opportunity->status_id) == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -176,7 +170,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
                             <label for="assureur_actuel_gagne" class="form-label">Assureur actuel</label>
-                            <select id="assureur_actuel_gagne" name="assureur_actuel" class="form-input">
+                            <select id="assureur_actuel_gagne" name="assureur_actuel" class="form-input" required>
                                 <option value="">-- Sélectionner un assureur --</option>
                                 @foreach($insurancePartners as $partner)
                                 <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
@@ -190,12 +184,12 @@
                                 <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label for="montant_ttc" class="form-label">Prime TTC</label>
-                                <input type="number" id="montant_ttc" name="montant_ttc" step="0.01" value="{{ old('montant_ttc', $opportunity->montant_ttc ?? '') }}" class="form-input">
+                                <label for="montant_souscription" class="form-label">Prime TTC</label>
+                                <input type="number" id="montant_souscription" name="montant_souscription" step="0.01" value="{{ old('montant_souscription', $opportunity->montant_souscription ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Période du contract Durée (mois)</label>
-                                <input type="number" id="contract_duration" name="contract_duration" min="1" placeholder="Ex: 12" value="{{ old('contract_duration', $opportunity->contract_duration ?? '') }}" class="form-input">
+                                <input type="number" id="periode_souscription" name="periode_souscription" min="1" placeholder="Ex: 12" value="{{ old('periode_souscription', $opportunity->periode_souscription ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
                                 <label for="url_attestationassurance" class="form-label">Attestation client</label>
@@ -351,11 +345,33 @@
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const slug = selectedOption.getAttribute('data-slug');
             const clientGagneSection = document.getElementById('clientGagneSection');
+            const contractDuration = document.getElementById('contract_duration');
+            const montantNettePrime = document.getElementById('montant_nette_prime');
+            const montantTTC = document.getElementById('montant_ttc');
+            const attestationClient = document.getElementById('url_attestationassurance');
+            const contratAssurance = document.getElementById('contrat_assurance');
+            const capturePaiement = document.getElementById('capture_paiement');
+            const assureurActuel = document.getElementById('assureur_actuel');
             
             if (slug === 'gagne') {
                 clientGagneSection.style.display = 'block';
+                contractDuration.setAttribute('required', 'required');
+                montantNettePrime.setAttribute('required', 'required');
+                montantTTC.setAttribute('required', 'required');
+                attestationClient.setAttribute('required', 'required');
+                contratAssurance.setAttribute('required', 'required');
+                capturePaiement.setAttribute('required', 'required');
+                assureurActuel.setAttribute('required', 'required');
+
             } else {
                 clientGagneSection.style.display = 'none';
+                contractDuration.removeAttribute('required');
+                montantNettePrime.removeAttribute('required');
+                montantTTC.removeAttribute('required');
+                attestationClient.removeAttribute('required');
+                contratAssurance.removeAttribute('required');
+                capturePaiement.removeAttribute('required');
+                assureurActuel.removeAttribute('required');
             }
         }
 
