@@ -180,7 +180,7 @@
                             </select>
                         </div>
                             <div class="form-group">
-                                <label for="montant_nette_prime" class="form-label">Prime NET</label>
+                                <label for="montant_nette_prime" class="form-label">Prime Nette</label>
                                 <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">

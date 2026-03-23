@@ -53,7 +53,14 @@
     </div>
 
     {{-- Table --}}
-    <div class="card" x-data="{ selectedIds: [], allChecked: false }">
+    <div class="card" x-data="{ 
+        selectedIds: [], 
+        allChecked: false,
+        totalCheckboxes: 0,
+        init() {
+            this.totalCheckboxes = document.querySelectorAll('input.opportunity-checkbox').length;
+        }
+    }" x-init="init()">
         {{-- Bulk actions bar --}}
         @if(!auth()->user()->isAgentConseil() && !auth()->user()->isAgentConseilRenouvellement())
         <div x-show="selectedIds.length > 0" class="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
@@ -73,10 +80,30 @@
                     <tr>
                         @if(!auth()->user()->isAgentConseil() && !auth()->user()->isAgentConseilRenouvellement())
                         <th class="w-10">
-                            <input type="checkbox"
-                                @change="allChecked = $el.checked; selectedIds = allChecked ? Array.from(document.querySelectorAll('input.opportunity-checkbox')).map(el => el.value) : []; document.querySelectorAll('input.opportunity-checkbox').forEach(el => el.checked = allChecked)"
-                                :checked="allChecked"
-                                class="rounded">
+                            <div class="flex flex-col items-center gap-2">
+                                <input type="checkbox"
+                                    @change="allChecked = $el.checked; selectedIds = allChecked ? Array.from(document.querySelectorAll('input.opportunity-checkbox')).map(el => el.value) : []; document.querySelectorAll('input.opportunity-checkbox').forEach(el => el.checked = allChecked)"
+                                    :checked="allChecked"
+                                    class="rounded cursor-pointer w-5 h-5" title="Sélectionner tout">
+                                <div class="text-xs text-gray-500 font-semibold">OU</div>
+                                <div class="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded border-2 border-blue-300">
+                                    <label class="text-xs font-bold text-blue-700 text-center">Sél. N</label>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" 
+                                            min="0"
+                                            :max="totalCheckboxes"
+                                            placeholder="0"
+                                            @change="
+                                                const num = parseInt($el.value) || 0;
+                                                const checkboxes = Array.from(document.querySelectorAll('input.opportunity-checkbox'));
+                                                checkboxes.forEach((el, idx) => el.checked = idx < num);
+                                                selectedIds = checkboxes.slice(0, num).map(el => el.value);
+                                                allChecked = false;
+                                            "
+                                            class="w-14 h-8 text-center text-sm font-bold border-2 border-blue-500 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                        <span class="text-xs text-gray-600 font-semibold" x-text="'/ ' + totalCheckboxes"></span>
+                                    </div>
+                                </div>
                         </th>
                         @endif
                         <th>Statut</th>
