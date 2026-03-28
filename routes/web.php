@@ -41,6 +41,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:lead,admin'])->group(function () {
         Route::get('bordereaux', [BordereauController::class, 'index'])->name('bordereaux.index');
         Route::get('bordereaux/conseil', [BordereauController::class, 'conseil'])->name('bordereaux.conseil');
+        Route::get('bordereaux/contrats-gagnes', [BordereauController::class, 'contratsGagnes'])->name('bordereaux.contrats-gagnes');
+        Route::get('bordereaux/contrats-gagnes-equipe', [BordereauController::class, 'contratsGagnesEquipe'])->name('bordereaux.contrats-gagnes-equipe');
+        Route::get('bordereaux/stats-comparatives', [BordereauController::class, 'statsComparatives'])->name('bordereaux.stats-comparatives');
+        Route::get('bordereaux/agents-terrain', [BordereauController::class, 'agentsTerrain'])->name('bordereaux.agents-terrain');
     });
 
     // Clients (opportunités gagnées)

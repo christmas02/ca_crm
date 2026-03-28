@@ -88,4 +88,12 @@ class User extends Authenticatable
     {
         return $this->hasRole('agent_conseil_renouvellement');
     }
+
+    /**
+     * Scope pour filtrer les utilisateurs actifs
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('actif', true);
+    }
 }
