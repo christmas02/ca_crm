@@ -9,6 +9,7 @@ use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BordereauController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,6 +36,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Comments
     Route::post('opportunities/{opportunity}/comments', [CommentController::class, 'store'])->name('comments.store');
+
+    // Bordereaux (Lead et Admin)
+    Route::middleware(['role:lead,admin'])->group(function () {
+        Route::get('bordereaux', [BordereauController::class, 'index'])->name('bordereaux.index');
+        Route::get('bordereaux/conseil', [BordereauController::class, 'conseil'])->name('bordereaux.conseil');
+    });
 
     // Clients (opportunités gagnées)
     Route::get('clients', [ClientController::class, 'index'])->name('clients.index');

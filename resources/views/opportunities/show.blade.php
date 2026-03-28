@@ -172,7 +172,7 @@
                                     <dd class="font-medium text-gray-800 mt-1">{{ $contract->insurancePartner->name ?? '—' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-400 text-xs">Prime nette</dt>
+                                    <dt class="text-gray-400 text-xs">Prime Nette</dt>
                                     <dd class="font-medium text-gray-800 mt-1">{{ $contract->net_premium ? number_format($contract->net_premium, 0, ',', ' ') . ' FCFA' : '—' }}</dd>
                                 </div>
                                 <div>
