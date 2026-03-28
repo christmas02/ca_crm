@@ -5,7 +5,7 @@
     <div class="mb-6 flex gap-2">
         <a href="{{ route('bordereaux.index') }}" class="btn-secondary text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Retour aux bordereaux
+            Accueil Reporting
         </a>
         <div class="badge bg-primary-100 text-primary-700">Conseil</div>
     </div>
@@ -64,7 +64,7 @@
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="text-gray-500 text-sm">Opportunités traitées</p>
-                        <p class="text-3xl font-bold text-gray-800 mt-1">{{ $donnees->sum('opp_traitees') }}</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-1">{{ $donnees->sum('opp_modifiees') }}</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
