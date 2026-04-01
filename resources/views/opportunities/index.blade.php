@@ -37,6 +37,17 @@
                 </div>
             </div>
 
+            <div>
+                <label>Plage de relance</label>
+                <div class="flex items-center gap-2">
+                    <input type="date" name="relance_start" value="{{ request('relance_start') }}" class="form-input w-40">
+                    <span class="text-gray-400">à</span>
+                    <input type="date" name="relance_end" value="{{ request('relance_end') }}" class="form-input w-40">
+                </div>
+            </div>
+
+            
+
             <div class="flex gap-2">
                 <button type="submit" class="btn-primary">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
@@ -129,8 +140,12 @@
                         </td>
                         @endif
                         <td>
-                            @if($opp->status)
+                            @if($opp->status && is_object($opp->status))
                             <span class="badge text-white" style="background-color: {{ $opp->status->color }}">{{ $opp->status->name }}</span>
+                            @elseif($opp->status)
+                            <span class="badge text-white bg-gray-500">{{ $opp->status }}</span>
+                            @else
+                            <span class="badge text-white bg-gray-400">N/A</span>
                             @endif
                         </td>
                         <td>

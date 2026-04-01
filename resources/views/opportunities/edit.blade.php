@@ -30,11 +30,25 @@
                             </div>
                             <div class="form-group">
                                 <label for="telephone" class="form-label">Téléphone *</label>
-                                <input type="text" id="telephone" name="telephone" value="{{ old('telephone', $opportunity->telephone) }}" required class="form-input">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="telephone" name="telephone" value="{{ old('telephone', $opportunity->telephone) }}" required class="form-input flex-1">
+                                    @if($opportunity->telephone)
+                                    <a href="tel:{{ $opportunity->telephone }}" class="inline-flex items-center justify-center w-10 h-10 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors" title="Appeler">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    </a>
+                                    @endif
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="telephone2" class="form-label">Téléphone secondaire</label>
-                                <input type="text" id="telephone2" name="telephone2" value="{{ old('telephone2', $opportunity->telephone2) }}" class="form-input">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="telephone2" name="telephone2" value="{{ old('telephone2', $opportunity->telephone2) }}" class="form-input flex-1">
+                                    @if($opportunity->telephone2)
+                                    <a href="tel:{{ $opportunity->telephone2 }}" class="inline-flex items-center justify-center w-10 h-10 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors" title="Appeler">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    </a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -83,11 +97,11 @@
                             <div class="form-group">
                                 <label class="form-label">Etat du discours</label>
                                 <div class="flex gap-3">
-                                    <button type="button" class="discourse-btn discourse-btn-ok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ old('statut_discours', $opportunity->statut_discours) == 'Validé' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Validé')">
+                                    <button type="button" class="discourse-btn discourse-btn-ok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ (old('statut_discours', $opportunity->statut_discours) == 'Validé' || old('statut_discours', $opportunity->statut_discours) == 'OK') ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Validé')">
                                         <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         Discours OK
                                     </button>
-                                    <button type="button" class="discourse-btn discourse-btn-nok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ old('statut_discours', $opportunity->statut_discours) == 'Rejeté' ? 'border-rose-500 bg-rose-50 text-rose-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Rejeté')">
+                                    <button type="button" class="discourse-btn discourse-btn-nok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ (old('statut_discours', $opportunity->statut_discours) == 'Rejeté' || old('statut_discours', $opportunity->statut_discours) == 'NON OK') ? 'border-rose-500 bg-rose-50 text-rose-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectDiscourseStatus(event, 'Rejeté')">
                                         <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m10-10a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         Discours Non OK
                                     </button>
@@ -167,19 +181,9 @@
                             <div class="w-1 h-4 bg-green-500 rounded-full"></div>
                             Détails - Client Gagné
                         </h4>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="form-group">
-                            <label for="assureur_actuel_gagne" class="form-label">Assureur actuel</label>
-                            <select id="assureur_actuel_gagne" name="assureur_actuel" class="form-input" required>
-                                <option value="">-- Sélectionner un assureur --</option>
-                                @foreach($insurancePartners as $partner)
-                                <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
-                                    {{ $partner->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                            <div class="form-group">
+                             <div class="form-group">
                                 <label for="montant_nette_prime" class="form-label">Prime Nette</label>
                                 <input type="number" id="montant_nette_prime" name="montant_nette_prime" step="0.01" value="{{ old('montant_nette_prime', $opportunity->montant_nette_prime ?? '') }}" class="form-input">
                             </div>
@@ -188,8 +192,25 @@
                                 <input type="number" id="montant_souscription" name="montant_souscription" step="0.01" value="{{ old('montant_souscription', $opportunity->montant_souscription ?? '') }}" class="form-input">
                             </div>
                             <div class="form-group">
+                            <label for="assureur_actuel_gagne" class="form-label">Assureur actuel</label>
+                            <select id="assureur_actuel_gagne" name="assureur_actuel" class="form-input">
+                                <option value="">-- Sélectionner un assureur --</option>
+                                @foreach($insurancePartners as $partner)
+                                <option value="{{ $partner->name }}" {{ old('assureur_actuel', $opportunity->assureur_actuel) == $partner->name ? 'selected' : '' }}>
+                                    {{ $partner->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                           
+                            <div class="form-group">
                                 <label class="form-label">Période du contract Durée (mois)</label>
-                                <input type="number" id="periode_souscription" name="periode_souscription" min="1" placeholder="Ex: 12" value="{{ old('periode_souscription', $opportunity->periode_souscription ?? '') }}" class="form-input">
+                                <select id="periode_souscription" name="periode_souscription" class="form-input">
+                                    <option value="">-- Sélectionner --</option>
+                                    @for($i = 1; $i <= 12; $i++)
+                                        <option value="{{ $i }}" {{ old('periode_souscription', $opportunity->periode_souscription) == $i ? 'selected' : '' }}>{{ $i }} mois</option>
+                                    @endfor
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="url_attestationassurance" class="form-label">Attestation client</label>
@@ -411,10 +432,10 @@
             const discourseValue = document.getElementById('statut_discours').value;
             if (discourseValue) {
                 document.querySelectorAll('.discourse-btn').forEach(btn => {
-                    if (discourseValue === 'Validé' && btn.classList.contains('discourse-btn-ok')) {
+                    if ((discourseValue === 'Validé' || discourseValue === 'OK') && btn.classList.contains('discourse-btn-ok')) {
                         btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
                         btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
-                    } else if (discourseValue === 'Rejeté' && btn.classList.contains('discourse-btn-nok')) {
+                    } else if ((discourseValue === 'Rejeté' || discourseValue === 'NON OK') && btn.classList.contains('discourse-btn-nok')) {
                         btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
                         btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
                     }

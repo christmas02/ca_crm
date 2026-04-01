@@ -62,7 +62,7 @@
                             Véhicule & Assurance
                         </h4>
                         <dl class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                            <div><dt class="text-gray-400 text-xs">Plaque</dt><dd class="mt-0.5">{{ $opportunity->plaque_immatriculation ?? '—' }}</dd></div>
+                            <div><dt class="text-gray-400 text-xs">Plaque Immatriculation</dt><dd class="mt-0.5">{{ $opportunity->plaque_immatriculation ?? '—' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Échéance</dt><dd class="mt-0.5">{{ $opportunity->echeance ? $opportunity->echeance->format('d/m/Y') : '—' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Lieu prospection</dt><dd class="mt-0.5">{{ $opportunity->lieuprospection ?? '—' }}</dd></div>
                             <div><dt class="text-gray-400 text-xs">Assureur actuel</dt><dd class="mt-0.5">{{ $opportunity->assureur_actuel ?? '—' }}</dd></div>

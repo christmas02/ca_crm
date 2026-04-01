@@ -40,12 +40,14 @@ class DashboardController extends Controller
             $data['totalUsers'] = $user->isAdmin() ? User::count() : User::where('team_id', $user->team_id)->count();
         }
 
-        if ($user->isAgentConseil()) {
+        if ($user->isAgentConseil() || $user->isAgentConseilRenouvellement()) {
             $data['assignedOpportunities'] = Opportunity::where('assigned_to', $user->id)
                 ->with(['status'])
                 ->latest()
                 ->get();
         }
+
+   
 
         if ($user->isAgentTerrain()) {
             $data['createdOpportunities'] = Opportunity::where('created_by', $user->id)
@@ -61,7 +63,7 @@ class DashboardController extends Controller
      */
     private function getCustomStats($user)
     {
-        if ($user->isAgentConseil()) {
+        if ($user->isAgentConseil() || $user->isAgentConseilRenouvellement()) {
             return $this->getAgentConseilStats($user);
         } elseif ($user->isAgentTerrain()) {
             return $this->getAgentTerrainStats($user);
@@ -75,9 +77,9 @@ class DashboardController extends Controller
     }
 
     /**
-     * Statistiques pour Agent Conseil
+     * Récupère les collections d'opportunités pour Agent Conseil
      */
-    private function getAgentConseilStats($user)
+    private function getAgentConseilOpportunitiesCollections($user)
     {
         $today = Carbon::now()->startOfDay();
         $weekEnd = Carbon::now()->addDays(7)->endOfDay();
@@ -85,40 +87,75 @@ class DashboardController extends Controller
         $rendezVousStatus = Status::where('slug', 'rendez_vous')->first();
         $nouvelleStatus = Status::where('slug', 'nouvelle')->first();
 
+        $collections = [
+            // Rendez-vous du jour
+            'rendezVous' => Opportunity::where('assigned_to', $user->id)
+                ->whereDate('relance', $today)
+                ->with(['status', 'assignee', 'client'])
+                ->get(),
+            
+            // Échéances cette semaine
+            'echeances' => Opportunity::where('assigned_to', $user->id)
+                ->whereNotNull('echeance')
+                ->whereDate('echeance', '>=', $today->format('Y-m-d'))
+                ->whereDate('echeance', '<=', $weekEnd->format('Y-m-d'))
+                ->with(['status', 'assignee', 'client'])
+                ->get(),
+            
+            // Nouvelles opportunités
+            'nouvelles' => Opportunity::join('assignments', 'opportunities.id', '=', 'assignments.opportunity_id')
+                ->where('assignments.assigned_to', $user->id)
+                ->when($nouvelleStatus, fn($q) => $q->where('opportunities.status_id', $nouvelleStatus->id))
+                ->whereDate('assignments.date_affect', $today)
+                ->select('opportunities.*')
+                ->with(['status', 'assignee', 'client'])
+                ->get(),
+        ];
+
+        return $collections;
+    }
+
+    /**
+     * Statistiques pour Agent Conseil
+     */
+    private function getAgentConseilStats($user)
+    {
+        $collections = $this->getAgentConseilOpportunitiesCollections($user);
+        
+        $rendezVousStatus = Status::where('slug', 'rendez_vous')->first();
+        $nouvelleStatus = Status::where('slug', 'nouvelle')->first();
+
+        $rendezVousCount = $collections['rendezVous']->count();
+        $echeancesCount = $collections['echeances']->count();
+        $nouvellesCount = $collections['nouvelles']->count();
+        $totalCount = $rendezVousCount + $echeancesCount + $nouvellesCount;
+
         return [
             // Rendez-vous du jour
             [
                 'label' => 'Rendez-vous du jour',
-                'value' => Opportunity::where('assigned_to', $user->id)
-                    ->when($rendezVousStatus, fn($q) => $q->where('status_id', $rendezVousStatus->id))
-                    ->whereDate('created_at', $today)
-                    ->count(),
+                'value' => $rendezVousCount,
                 'color' => $rendezVousStatus?->color ?? '#3b82f6',
                 'icon' => '📞'
             ],
             // Échéances urgentes cette semaine
             [
                 'label' => 'Échéances cette semaine',
-                'value' => Opportunity::where('assigned_to', $user->id)
-                    ->whereNotNull('echeance')
-                    ->whereBetween('echeance', [$today, $weekEnd])
-                    ->count(),
+                'value' => $echeancesCount,
                 'color' => '#f59e0b',
                 'icon' => '⚠️'
             ],
             // Nouvelles opportunités assignées
             [
-                'label' => 'Nouvelles assignées',
-                'value' => Opportunity::where('assigned_to', $user->id)
-                    ->when($nouvelleStatus, fn($q) => $q->where('status_id', $nouvelleStatus->id))
-                    ->count(),
+                'label' => 'Nouvelles opportunités',
+                'value' => $nouvellesCount,
                 'color' => $nouvelleStatus?->color ?? '#fbbf24',
                 'icon' => '✨'
             ],
-            // Total opportunités assignées
+            // Total opportunités assignées (sum of previous values)
             [
-                'label' => 'Total assignées',
-                'value' => Opportunity::where('assigned_to', $user->id)->where('status_id', '!=' ,'7')->count(),
+                'label' => 'Total opportunités',
+                'value' => $totalCount,
                 'color' => '#6366f1',
                 'icon' => '📊'
             ],
@@ -142,7 +179,8 @@ class DashboardController extends Controller
                     ->when($nouvelleStatus, fn($q) => $q->where('status_id', $nouvelleStatus->id))
                     ->count(),
                 'color' => $nouvelleStatus?->color ?? '#fbbf24',
-                'icon' => '✨'
+                'icon' => '✨',
+                'url' => route('opportunities.index', ['created_by' => $user->id, 'status' => 'nouvelle'])
             ],
             // Opportunités gagnées
             [
@@ -151,7 +189,8 @@ class DashboardController extends Controller
                     ->when($gagneStatus, fn($q) => $q->where('status_id', $gagneStatus->id))
                     ->count(),
                 'color' => $gagneStatus?->color ?? '#10b981',
-                'icon' => '🏆'
+                'icon' => '🏆',
+                'url' => route('opportunities.index', ['created_by' => $user->id, 'status' => 'gagne'])
             ],
             // Opportunités perdues
             [
@@ -160,14 +199,16 @@ class DashboardController extends Controller
                     ->when($perdusStatus, fn($q) => $q->where('status_id', $perdusStatus->id))
                     ->count(),
                 'color' => $perdusStatus?->color ?? '#ef4444',
-                'icon' => '❌'
+                'icon' => '❌',
+                'url' => route('opportunities.index', ['created_by' => $user->id, 'status' => 'perdus'])
             ],
             // Total créées
             [
                 'label' => 'Total créées',
                 'value' => Opportunity::where('created_by', $user->id)->count(),
                 'color' => '#8b5cf6',
-                'icon' => '📋'
+                'icon' => '📋',
+                'url' => route('opportunities.index', ['created_by' => $user->id])
             ],
         ];
     }
@@ -188,14 +229,16 @@ class DashboardController extends Controller
                 'label' => 'Total équipe',
                 'value' => (clone $teamQuery)->count(),
                 'color' => '#6366f1',
-                'icon' => '👥'
+                'icon' => '👥',
+                'url' => route('opportunities.index', ['team_id' => $user->team_id])
             ],
             // Opportunités assignées
             [
                 'label' => 'Assignées',
                 'value' => (clone $teamQuery)->whereNotNull('assigned_to')->count(),
                 'color' => '#3b82f6',
-                'icon' => '📌'
+                'icon' => '📌',
+                'url' => route('opportunities.index', ['team_id' => $user->team_id, 'assigned' => 'yes'])
             ],
             // Opportunités gagnées
             [
@@ -204,7 +247,8 @@ class DashboardController extends Controller
                     ->when($gagneStatus, fn($q) => $q->where('status_id', $gagneStatus->id))
                     ->count(),
                 'color' => $gagneStatus?->color ?? '#10b981',
-                'icon' => '🏆'
+                'icon' => '🏆',
+                'url' => route('opportunities.index', ['team_id' => $user->team_id, 'status' => 'gagne'])
             ],
             // Opportunités perdues
             [
@@ -213,7 +257,8 @@ class DashboardController extends Controller
                     ->when($perdusStatus, fn($q) => $q->where('status_id', $perdusStatus->id))
                     ->count(),
                 'color' => $perdusStatus?->color ?? '#ef4444',
-                'icon' => '❌'
+                'icon' => '❌',
+                'url' => route('opportunities.index', ['team_id' => $user->team_id, 'status' => 'perdus'])
             ],
         ];
     }
@@ -232,28 +277,32 @@ class DashboardController extends Controller
                 'label' => 'Total opportunités',
                 'value' => Opportunity::count(),
                 'color' => '#6366f1',
-                'icon' => '📊'
+                'icon' => '📊',
+                'url' => route('opportunities.index')
             ],
             // Total clients
             [
                 'label' => 'Total clients',
                 'value' => Client::count(),
                 'color' => '#3b82f6',
-                'icon' => '👤'
+                'icon' => '👤',
+                'url' => route('clients.index')
             ],
             // Total utilisateurs
             [
                 'label' => 'Total utilisateurs',
                 'value' => User::count(),
                 'color' => '#8b5cf6',
-                'icon' => '👨‍💼'
+                'icon' => '👨‍💼',
+                'url' => route('users.index')
             ],
             // Taux de conversion (Gagnées)
             [
                 'label' => 'Opportunités gagnées',
                 'value' => Opportunity::when($gagneStatus, fn($q) => $q->where('status_id', $gagneStatus->id))->count(),
                 'color' => $gagneStatus?->color ?? '#10b981',
-                'icon' => '🏆'
+                'icon' => '🏆',
+                'url' => route('opportunities.index', ['status' => 'gagne'])
             ],
         ];
     }
@@ -281,5 +330,43 @@ class DashboardController extends Controller
         }
 
         return $groups;
+    }
+
+    public function getStatOpportunities(Request $request)
+    {
+        $user = $request->user();
+        $statIndex = $request->get('stat_index', 0);
+
+        $collections = $this->getAgentConseilOpportunitiesCollections($user);
+
+        $opportunities = collect();
+
+        if ($statIndex == 0) {
+            $opportunities = $collections['rendezVous'];
+        } elseif ($statIndex == 1) {
+            $opportunities = $collections['echeances'];
+        } elseif ($statIndex == 2) {
+            $opportunities = $collections['nouvelles'];
+        } elseif ($statIndex == 3) {
+            // Total (union des 3 précédentes)
+            $opportunities = $collections['rendezVous']
+                ->concat($collections['echeances'])
+                ->concat($collections['nouvelles'])
+                ->unique('id');
+        }
+
+        return response()->json([
+            'opportunities' => $opportunities->map(function($opp) {
+                return [
+                    'id' => $opp->id,
+                    'full_name' => $opp->full_name,
+                    'telephone' => $opp->telephone,
+                    'status' => $opp->status,
+                    'plaque_immatriculation' => $opp->plaque_immatriculation,
+                    'echeance' => $opp->echeance,
+                    'relance' => $opp->relance,
+                ];
+            })
+        ]);
     }
 }
