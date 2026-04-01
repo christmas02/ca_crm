@@ -160,16 +160,26 @@ class OpportunityController extends Controller
         // 6. FILTRAGE PAR PLAGE DE DATES (optionnel)
         // Filtre par date de début d'échéance
         if ($request->filled('date_start')) {
-            $query->where('echeance', '>=', $request->date_start);
+            $query->whereDate('echeance', '>=', $request->date_start);
         }
         // Filtre par date de fin d'échéance
         if ($request->filled('date_end')) {
-            $query->where('echeance', '<=', $request->date_end);
+            $query->whereDate('echeance', '<=', $request->date_end);
+        }
+
+        // 6b. FILTRAGE PAR PLAGE DE DATE DE RELANCE (optionnel)
+        // Filtre par date de début de relance
+        if ($request->filled('relance_start')) {
+            $query->whereDate('relance', '>=', $request->relance_start);
+        }
+        // Filtre par date de fin de relance
+        if ($request->filled('relance_end')) {
+            $query->whereDate('relance', '<=', $request->relance_end);
         }
 
         // 7. RÉSULTATS
-        // Récupère les opportunités (triées par plus récentes) avec pagination 15 par page
-        $opportunities = $query->latest()->paginate(15)->withQueryString();
+        // Récupère les opportunités (triées par plus récentes) avec pagination 100 par page
+        $opportunities = $query->latest()->paginate(100)->withQueryString();
         
         // Récupère tous les statuts pour afficher dans les filtres
         $statuses = Status::orderBy('order')->orderBy('name')->get();
@@ -192,6 +202,7 @@ class OpportunityController extends Controller
             ->where('assignments.assigned_to', $user->id)
             // Filtre: seulement les assignations actives (pas les anciennes)
             ->where('assignments.status', 'active');
+
 
         // 3. Filtrer par statut selon le rôle
         if ($user->isAgentConseilRenouvellement()) {
@@ -223,13 +234,13 @@ class OpportunityController extends Controller
         // 6. Récupère tous les statuts disponibles pour les filtres
         $statuses = Status::orderBy('order')->orderBy('name')->get();
 
-        // 5. Récupère les résultats avec pagination (15 par page)
+        // 5. Récupère les résultats avec pagination (100 par page)
         // Tri par date d'échéance pour les agents renouvellement, sinon par dernière mise à jour
         if ($user->isAgentConseilRenouvellement()) {
-            $opportunities = $query->orderBy('opportunities.echeance', 'asc')->paginate(15);
+            $opportunities = $query->orderBy('opportunities.echeance', 'asc')->paginate(100);
             return view('opportunities.renewals', compact('opportunities', 'statuses'));
         } else {
-            $opportunities = $query->latest('opportunities.updated_at')->paginate(15);
+            $opportunities = $query->latest('opportunities.updated_at')->paginate(100);
               // 7. Affiche la vue avec les opportunités et statuts
             return view('opportunities.index', compact('opportunities', 'statuses'));
         }
@@ -251,7 +262,7 @@ class OpportunityController extends Controller
             ->with(['status', 'client', 'creator', 'team', 'insurancePartner', 'comments', 'contracts'])
             ->latest()
             ->orderBy('opportunities.echeance', 'asc')
-            ->paginate(20)
+            ->paginate(100)
             ->withQueryString();
 
         // 4. Récupérer tous les statuts pour les filtres
@@ -345,7 +356,7 @@ class OpportunityController extends Controller
 
     public function update(Request $request, Opportunity $opportunity)
     {
-        //dd($request->all());
+       //$request->all());
         try {
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',

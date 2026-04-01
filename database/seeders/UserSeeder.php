@@ -16,6 +16,7 @@ class UserSeeder extends Seeder
         $leadRole = Role::where('slug', 'lead')->first();
         $conseilRole = Role::where('slug', 'agent_conseil')->first();
         $terrainRole = Role::where('slug', 'agent_terrain')->first();
+        $conseilRenouvellementRole = Role::where('slug', 'agent_conseil_renouvellement')->first();
 
         $teamAlpha = Team::where('name', 'Équipe Alpha')->first();
         $teamBeta = Team::where('name', 'Équipe Beta')->first();
@@ -66,6 +67,18 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role_id' => $terrainRole->id,
                 'team_id' => $i < 3 ? $teamAlpha->id : $teamBeta->id,
+            ]);
+        }
+
+        // Agents Conseil Renouvellement
+        $renouvellementNames = ['David Moreau', 'Sophie Leclerc'];
+        foreach ($renouvellementNames as $i => $name) {
+            User::create([
+                'name' => $name,
+                'identification' => 'renouvellement' . ($i + 1) . '@ca-crm.com',
+                'password' => Hash::make('password'),
+                'role_id' => $conseilRenouvellementRole->id,
+                'team_id' => $i < 1 ? $teamAlpha->id : $teamBeta->id,
             ]);
         }
     }

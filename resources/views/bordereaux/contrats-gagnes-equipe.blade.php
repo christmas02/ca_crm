@@ -99,9 +99,9 @@
                                     <td class="py-3 px-3 text-center text-gray-700">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">{{ $row['taux_conversion'] }}%</span>
                                     </td>
-                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_nette'], 2, ',', ' ') }} €</td>
-                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_ttc'], 2, ',', ' ') }} €</td>
-                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_moyenne'], 2, ',', ' ') }} €</td>
+                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_nette'], 2, ',', ' ') }} XOF</td>
+                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_ttc'], 2, ',', ' ') }} XOF</td>
+                                    <td class="py-3 px-3 text-right text-gray-900 font-semibold">{{ number_format($row['prime_moyenne'], 2, ',', ' ') }} XOF</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -118,9 +118,9 @@
                         <div class="col-span-1 text-center">{{ number_format($donnees->sum('score'), 2) }}</div>
                         <div class="col-span-1 text-center">{{ number_format($donnees->avg('taux_affectees'), 2) }}% / {{ number_format($donnees->avg('taux_traitees'), 2) }}%</div>
                         <div class="col-span-1 text-center">{{ number_format($donnees->avg('taux_conversion'), 2) }}%</div>
-                        <div class="col-span-1 text-right">{{ number_format($donnees->sum('prime_nette'), 2, ',', ' ') }} €</div>
-                        <div class="col-span-1 text-right">{{ number_format($donnees->sum('prime_ttc'), 2, ',', ' ') }} €</div>
-                        <div class="col-span-1 text-right">{{ number_format($donnees->avg('prime_moyenne'), 2, ',', ' ') }} €</div>
+                        <div class="col-span-1 text-right">{{ number_format($donnees->sum('prime_nette'), 2, ',', ' ') }} XOF</div>
+                        <div class="col-span-1 text-right">{{ number_format($donnees->sum('prime_ttc'), 2, ',', ' ') }} XOF</div>
+                        <div class="col-span-1 text-right">{{ number_format($donnees->avg('prime_moyenne'), 2, ',', ' ') }} XOF</div>
                     </div>
                 </div>
             @endif

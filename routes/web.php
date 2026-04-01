@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stat-opportunities', [DashboardController::class, 'getStatOpportunities'])->name('dashboard.stat-opportunities');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
