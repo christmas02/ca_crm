@@ -104,6 +104,7 @@
                         <th>D-Relance</th>
                         <th>Jours avant échéance</th>
                         <th>Durée (mois)</th>
+                        <th>Prime ttc / nette </th>
                         <th>Assureur</th>
                         <th>Actions</th>
                     </tr>
@@ -139,12 +140,13 @@
                                     $jours = now()->diffInDays($opp->echeance, false);
                                     $couleur = $jours < 0 ? 'text-red-600' : ($jours < 30 ? 'text-orange-600' : 'text-green-600');
                                 @endphp
-                                <span class="{{ $couleur }} font-semibold">E _ {{ abs($jours) }} .</span>
+                                <span class="{{ $couleur }} font-semibold">E- {{ abs($jours) }} .</span>
                             @else
                                 —
                             @endif
                         </td>
                         <td class="whitespace-nowrap">{{ $opp->periode_souscription ?? '—' }}</td>
+                         <td class="whitespace-nowrap">{{ $opp->prime_ttc ?? '—' }} / {{ $opp->prime_nette ?? '—' }}</td>
                         <td class="whitespace-nowrap">{{ $opp->assureur_actuel ?? '—' }}</td>
                         <td>
                             <div class="flex items-center gap-2">

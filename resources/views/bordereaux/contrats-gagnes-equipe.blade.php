@@ -62,8 +62,8 @@
                             <tr class="border-b-2 border-gray-300 bg-gray-50">
                                 <th class="text-left py-3 px-3 font-semibold text-gray-700">Équipe</th>
                                 <th class="text-center py-3 px-3 font-semibold text-gray-700">Opp Traité</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-700">Contrat Nouveau</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-700">Contrat Renouvelé</th>
+                                <th class="text-center py-3 px-3 font-semibold text-gray-700">Contrat AN/</th>
+                                <th class="text-center py-3 px-3 font-semibold text-gray-700">Contrat RN/</th>
                                 <th class="text-center py-3 px-3 font-semibold text-gray-700">Score</th>
                                 <th class="text-center py-3 px-3 font-semibold text-gray-700">Taux Aff / Traité</th>
                                 <th class="text-center py-3 px-3 font-semibold text-gray-700">Taux Conv %</th>
