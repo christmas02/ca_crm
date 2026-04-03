@@ -111,6 +111,25 @@
                         </div>
                     </div>
 
+                     <div class="mb-6 pb-6 border-b border-gray-100">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">Etat de la carte grise</label>
+                                 <div class="flex gap-3">
+                                    <button type="button" class="carte-btn carte-btn-ok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ (old('statut_carte_grise', $opportunity->statut_carte_grise) == 'Reçu' || old('statut_carte_grise', $opportunity->statut_carte_grise) == 'OK') ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectCarteGriseStatus(event, 'Reçu')">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Carte grise OK
+                                    </button>
+                                     <button type="button" class="carte-btn carte-btn-nok flex-1 px-4 py-2 rounded-lg border-2 transition-all {{ (old('statut_carte_grise', $opportunity->statut_carte_grise) == 'En attente' || old('statut_carte_grise', $opportunity->statut_carte_grise) == 'NON OK') ? 'border-rose-500 bg-rose-50 text-rose-700 font-semibold shadow-sm' : 'border-gray-300 bg-gray-100 text-gray-600 hover:border-gray-400' }}" onclick="selectCarteGriseStatus(event, 'En attente')">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m10-10a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Carte grise Non OK
+                                    </button>
+                                </div>
+                                <input type="hidden" id="statut_carte_grise" name="statut_carte_grise" value="{{ old('statut_carte_grise', $opportunity->statut_carte_grise) }}">
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Section: Documents  --}}
                     <div class="mb-6 pb-6 border-b border-gray-100">
                         <h4 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -421,6 +440,31 @@
             }
         }
 
+        // Gérer la sélection de la carte grise
+        function selectCarteGriseStatus(event, value) {
+            event.preventDefault();
+            document.getElementById('statut_carte_grise').value = value;
+            
+            // Réinitialiser tous les boutons au style par défaut
+            document.querySelectorAll('.carte-btn').forEach(btn => {
+                btn.classList.remove(
+                    'border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm',
+                    'border-rose-500', 'bg-rose-50', 'text-rose-700'
+                );
+                btn.classList.add('border-gray-300', 'bg-gray-100', 'text-gray-600');
+            });
+            
+            // Appliquer le style actif au bouton cliqué
+            const btn = event.target.closest('button');
+            btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+            
+            if (value === 'Reçu') {
+                btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
+            } else if (value === 'En attente') {
+                btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
+            }
+        }
+
         // Vérifier au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
             const statusSelect = document.getElementById('status_id');
@@ -436,6 +480,20 @@
                         btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
                         btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
                     } else if ((discourseValue === 'Rejeté' || discourseValue === 'NON OK') && btn.classList.contains('discourse-btn-nok')) {
+                        btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+                        btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
+                    }
+                });
+            }
+
+            // Initialiser les styles des boutons de carte grise
+            const carteGriseValue = document.getElementById('statut_carte_grise').value;
+            if (carteGriseValue) {
+                document.querySelectorAll('.carte-btn').forEach(btn => {
+                    if ((carteGriseValue === 'Reçu' || carteGriseValue === 'OK') && btn.classList.contains('carte-btn-ok')) {
+                        btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
+                        btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'font-semibold', 'shadow-sm');
+                    } else if ((carteGriseValue === 'En attente' || carteGriseValue === 'NON OK') && btn.classList.contains('carte-btn-nok')) {
                         btn.classList.remove('border-gray-300', 'bg-gray-100', 'text-gray-600');
                         btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700', 'font-semibold', 'shadow-sm');
                     }

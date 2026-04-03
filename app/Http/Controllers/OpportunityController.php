@@ -265,6 +265,7 @@ class OpportunityController extends Controller
             ->paginate(100)
             ->withQueryString();
 
+
         // 4. Récupérer tous les statuts pour les filtres
         $statuses = Status::orderBy('order')->orderBy('name')->get();
 
