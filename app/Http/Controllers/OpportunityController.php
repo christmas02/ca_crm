@@ -215,19 +215,22 @@ class OpportunityController extends Controller
             $query->whereNotIn('opportunities.status_id', $excludeStatusIds);
         }
 
-            // Affiche l'opportunité si elle remplit AU MOINS UNE de ces conditions:
-        $query->where(function ($q) use ($today) {
-            // Condition 1: Date de relance <= aujourd'hui (en retard/à relancer)
-            $q->where(function ($subQ) use ($today) {
-                $subQ->whereNotNull('opportunities.relance')
-                     ->where('opportunities.relance', '<=', $today);
+        // 4. Affiche l'opportunité si elle remplit AU MOINS UNE de ces conditions:
+        $nouvelleStatusId = Status::where('slug', 'nouvelle')->first()?->id;
+        $perduStatusId = Status::where('slug', 'perdus')->first()?->id;
+        
+        $query->where(function ($q) use ($today, $nouvelleStatusId, $perduStatusId) {
+            // Condition 1: Si statut = "Nouvelle" ET Date d'affectation <= aujourd'hui
+            $q->where(function ($subQ) use ($nouvelleStatusId, $today) {
+                $subQ->where('opportunities.status_id', $nouvelleStatusId)
+                     ->where('assignments.date_affect', '<=', $today);
             })
-            // Condition 2: Date d'affectation (assignation) <= aujourd'hui (assignée depuis longtemps)
-            ->orWhere('assignments.date_affect', '<=', $today)
-            // Condition 3: Date d'écheance <= aujourd'hui (en retard/expirée)
-            ->orWhere(function ($subQ) use ($today) {
-                $subQ->whereNotNull('opportunities.echeance')
-                     ->where('opportunities.echeance', '<=', $today);
+            // Condition 2: Si statut != "Nouvelle" ET statut != "Perdus" ET Date de relance <= aujourd'hui
+            ->orWhere(function ($subQ) use ($nouvelleStatusId, $perduStatusId, $today) {
+                $subQ->where('opportunities.status_id', '!=', $nouvelleStatusId)
+                     ->where('opportunities.status_id', '!=', $perduStatusId)
+                     ->whereNotNull('opportunities.relance')
+                     ->where('opportunities.relance', '<=', $today);
             });
         })->select('opportunities.*');
 

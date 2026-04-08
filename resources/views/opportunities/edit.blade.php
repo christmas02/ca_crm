@@ -385,27 +385,26 @@
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const slug = selectedOption.getAttribute('data-slug');
             const clientGagneSection = document.getElementById('clientGagneSection');
-            const contractDuration = document.getElementById('contract_duration');
+            const periodesouscription = document.getElementById('periode_souscription');
             const montantNettePrime = document.getElementById('montant_nette_prime');
-            const montantTTC = document.getElementById('montant_ttc');
+            const montantTTC = document.getElementById('montant_souscription');
             const attestationClient = document.getElementById('url_attestationassurance');
             const contratAssurance = document.getElementById('contrat_assurance');
             const capturePaiement = document.getElementById('capture_paiement');
-            const assureurActuel = document.getElementById('assureur_actuel');
+            const assureurActuel = document.getElementById('assureur_actuel_gagne');
             
             if (slug === 'gagne') {
                 clientGagneSection.style.display = 'block';
-                contractDuration.setAttribute('required', 'required');
+                periodesouscription.setAttribute('required', 'required');
                 montantNettePrime.setAttribute('required', 'required');
                 montantTTC.setAttribute('required', 'required');
                 attestationClient.setAttribute('required', 'required');
                 contratAssurance.setAttribute('required', 'required');
                 capturePaiement.setAttribute('required', 'required');
                 assureurActuel.setAttribute('required', 'required');
-
             } else {
                 clientGagneSection.style.display = 'none';
-                contractDuration.removeAttribute('required');
+                periodesouscription.removeAttribute('required');
                 montantNettePrime.removeAttribute('required');
                 montantTTC.removeAttribute('required');
                 attestationClient.removeAttribute('required');
