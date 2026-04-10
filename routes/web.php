@@ -29,6 +29,8 @@ Route::middleware(['auth'])->group(function () {
     // Opportunities
     Route::get('opportunities/new', [OpportunityController::class, 'listNewOpportunities'])->name('opportunities.new');
     Route::get('opportunities/renewals', [OpportunityController::class, 'listRenewals'])->name('opportunities.renewals');
+    Route::get('opportunities/export', [OpportunityController::class, 'export'])->name('opportunities.export');
+    Route::get('opportunities/renewals/export', [OpportunityController::class, 'exportRenewals'])->name('opportunities.renewals.export');
     Route::post('opportunities/bulk/assign', [OpportunityController::class, 'bulkAssign'])->name('opportunities.bulkAssign');
     Route::post('opportunities/{opportunity}/assign', [OpportunityController::class, 'assign'])->name('opportunities.assign');
     Route::post('opportunities/{opportunity}/status', [OpportunityController::class, 'changeStatus'])->name('opportunities.change-status');
@@ -42,10 +44,15 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:lead,admin'])->group(function () {
         Route::get('bordereaux', [BordereauController::class, 'index'])->name('bordereaux.index');
         Route::get('bordereaux/conseil', [BordereauController::class, 'conseil'])->name('bordereaux.conseil');
+        Route::get('bordereaux/conseil/export', [BordereauController::class, 'exportConseil'])->name('bordereaux.conseil.export');
         Route::get('bordereaux/contrats-gagnes', [BordereauController::class, 'contratsGagnes'])->name('bordereaux.contrats-gagnes');
+        Route::get('bordereaux/contrats-gagnes/export', [BordereauController::class, 'exportContratsGagnes'])->name('bordereaux.contrats-gagnes.export');
         Route::get('bordereaux/contrats-gagnes-equipe', [BordereauController::class, 'contratsGagnesEquipe'])->name('bordereaux.contrats-gagnes-equipe');
+        Route::get('bordereaux/contrats-gagnes-equipe/export', [BordereauController::class, 'exportContratsGagnesEquipe'])->name('bordereaux.contrats-gagnes-equipe.export');
         Route::get('bordereaux/stats-comparatives', [BordereauController::class, 'statsComparatives'])->name('bordereaux.stats-comparatives');
+        Route::get('bordereaux/stats-comparatives/export', [BordereauController::class, 'exportStatsComparatives'])->name('bordereaux.stats-comparatives.export');
         Route::get('bordereaux/agents-terrain', [BordereauController::class, 'agentsTerrain'])->name('bordereaux.agents-terrain');
+        Route::get('bordereaux/agents-terrain/export', [BordereauController::class, 'exportAgentsTerrain'])->name('bordereaux.agents-terrain.export');
     });
 
     // Clients (opportunités gagnées)

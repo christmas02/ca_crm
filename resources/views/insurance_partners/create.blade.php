@@ -33,7 +33,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="email" class="form-label">Email *</label>
-                                    <input type="email" id="email" name="email" value="{{ old('email') }}" required class="form-input">
+                                    <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-input">
                                     @error('email')<span class="form-error">{{ $message }}</span>@enderror
                                 </div>
                                 <div class="form-group">
