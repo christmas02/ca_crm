@@ -143,8 +143,8 @@ Ce fichier liste toutes les routes de l'application avec leur méthode HTTP, leu
 | Supprimer une opp | ✓ | ✗ | ✗ | ✗ | ✗ |
 | Affecter une opp | ✓ | ✓ |✓ |✗ | ✓|
 | Changer statut | ✓ | ✓ | ✓ | ✗ | ✓ |
-| Voir clients | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Voir contrats | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Voir clients | ✓ | ✓ | ✓ | ✗ | ✓ |
+| Voir contrats | ✓ | ✓ | ✓ | ✗ | ✓ |
 | Gérer contrats | ✓ | ✓ | ✓ | ✗ | ✓ |
 | Bordereaux | ✓ | ✓ | ✗ | ✗ | ✗ |
 | Gérer utilisateurs | ✓ | ✗ | ✗ | ✗ | ✗ |
