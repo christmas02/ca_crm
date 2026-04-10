@@ -141,8 +141,8 @@ Ce fichier liste toutes les routes de l'application avec leur méthode HTTP, leu
 | Créer une opp | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Modifier une opp | ✓ | ✓ | ✓ | ✓ | Statut Gagné seul. |
 | Supprimer une opp | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Affecter une opp | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Changer statut | ✓ | ✓ | Assignées seul. | ✗ | ✗ |
+| Affecter une opp | ✓ | ✓ |✓ |✗ | ✓|
+| Changer statut | ✓ | ✓ | ✓ | ✗ | ✓ |
 | Voir clients | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Voir contrats | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Gérer contrats | ✓ | ✓ | ✓ | ✗ | ✓ |
