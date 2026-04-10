@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ContractController;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class OpportunityController extends Controller
 {
@@ -644,5 +646,182 @@ class OpportunityController extends Controller
 
         return redirect()->route('opportunities.show', $opportunity)
             ->with('success', 'Statut mis à jour.');
+    }
+
+    /**
+     * Exporte les opportunités en PDF ou Excel
+     */
+    public function export(Request $request)
+    {
+        $format = $request->query('format', 'excel');
+        
+        // Récupérer les filtres
+        $query = Opportunity::with('status', 'assignee');
+        
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nom', 'LIKE', "%$search%")
+                  ->orWhere('prenoms', 'LIKE', "%$search%")
+                  ->orWhere('telephone', 'LIKE', "%$search%")
+                  ->orWhere('plaque_immatriculation', 'LIKE', "%$search%");
+            });
+        }
+        
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+        
+        if ($request->filled('date_start') && $request->filled('date_end')) {
+            $query->whereBetween('echeance', [$request->date_start, $request->date_end]);
+        }
+        
+        $opportunities = $query->get();
+        
+        if ($format === 'excel') {
+            return $this->exportOpportunitiesCSV($opportunities, 'opportunites');
+        } else {
+            return $this->exportOpportunitiesPDF($opportunities, 'Opportunités');
+        }
+    }
+
+    /**
+     * Exporte les renouvellements
+     */
+    public function exportRenewals(Request $request)
+    {
+        $format = $request->query('format', 'excel');
+        
+        $statusRenouvellement = Status::where('slug', 'renouvellement')->first();
+        
+        $query = Opportunity::with('status', 'assignee');
+        
+        if ($statusRenouvellement) {
+            $query->where('status_id', $statusRenouvellement->id);
+        }
+        
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nom', 'LIKE', "%$search%")
+                  ->orWhere('prenoms', 'LIKE', "%$search%")
+                  ->orWhere('telephone', 'LIKE', "%$search%")
+                  ->orWhere('plaque_immatriculation', 'LIKE', "%$search%");
+            });
+        }
+        
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+        
+        $opportunities = $query->get();
+        
+        if ($format === 'excel') {
+            return $this->exportOpportunitiesCSV($opportunities, 'renouvellements');
+        } else {
+            return $this->exportOpportunitiesPDF($opportunities, 'Renouvellements');
+        }
+    }
+
+    /**
+     * Exporte en CSV
+     */
+    private function exportOpportunitiesCSV($opportunities, $filename)
+    {
+        $filename .= '_' . now()->format('Y-m-d') . '.csv';
+        
+        $headers = array(
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+
+        $callback = function() use ($opportunities) {
+            $file = fopen('php://output', 'w');
+            
+            fputcsv($file, array(
+                'Nom',
+                'Prénoms',
+                'Téléphone',
+                'Plaque Immatriculation',
+                'Statut',
+                'Échéance',
+                'Relance',
+                'Assigné à',
+                'Assureur Actuel',
+                'Lieu Prospection'
+            ), ';');
+
+            foreach ($opportunities as $opp) {
+                fputcsv($file, array(
+                    $opp->nom ?? '',
+                    $opp->prenoms ?? '',
+                    $opp->telephone ?? '',
+                    $opp->plaque_immatriculation ?? '',
+                    $opp->status?->name ?? '',
+                    $opp->echeance ? Carbon::parse($opp->echeance)->format('d/m/Y') : '',
+                    $opp->relance ? Carbon::parse($opp->relance)->format('d/m/Y') : '',
+                    $opp->assignee?->name ?? '',
+                    $opp->assureur_actuel ?? '',
+                    $opp->lieuprospection ?? ''
+                ), ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exporte en PDF
+     */
+    private function exportOpportunitiesPDF($opportunities, $title)
+    {
+        $html = '<html><head><meta charset="UTF-8"><style>';
+        $html .= 'body { font-family: Arial, sans-serif; margin: 15px; font-size: 10px; }';
+        $html .= 'h1 { text-align: center; color: #1f2937; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; font-size: 18px; }';
+        $html .= 'table { width: 100%; border-collapse: collapse; margin-top: 15px; }';
+        $html .= 'th { background-color: #3b82f6; color: white; padding: 8px; text-align: left; font-weight: bold; }';
+        $html .= 'td { padding: 6px; border: 1px solid #ddd; }';
+        $html .= 'tr:nth-child(even) { background-color: #f9f9f9; }';
+        $html .= '.date-info { text-align: center; color: #666; margin-bottom: 15px; font-size: 11px; }';
+        $html .= '</style></head><body>';
+        
+        $html .= '<h1>' . $title . '</h1>';
+        $html .= '<div class="date-info">Généré le ' . now()->format('d/m/Y H:i:s') . ' - Total: ' . $opportunities->count() . ' enregistrement(s)</div>';
+        
+        $html .= '<table>';
+        $html .= '<thead><tr>';
+        $html .= '<th>Nom</th>';
+        $html .= '<th>Prénoms</th>';
+        $html .= '<th>Téléphone</th>';
+        $html .= '<th>Plaque</th>';
+        $html .= '<th>Statut</th>';
+        $html .= '<th>Échéance</th>';
+        $html .= '<th>Relance</th>';
+        $html .= '<th>Assigné</th>';
+        $html .= '</tr></thead><tbody>';
+        
+        foreach ($opportunities as $opp) {
+            $html .= '<tr>';
+            $html .= '<td>' . htmlspecialchars($opp->nom ?? '') . '</td>';
+            $html .= '<td>' . htmlspecialchars($opp->prenoms ?? '') . '</td>';
+            $html .= '<td>' . ($opp->telephone ?? '') . '</td>';
+            $html .= '<td>' . ($opp->plaque_immatriculation ?? '') . '</td>';
+            $html .= '<td>' . ($opp->status?->name ?? '') . '</td>';
+            $html .= '<td>' . ($opp->echeance ? Carbon::parse($opp->echeance)->format('d/m/Y') : '') . '</td>';
+            $html .= '<td>' . ($opp->relance ? Carbon::parse($opp->relance)->format('d/m/Y') : '') . '</td>';
+            $html .= '<td>' . ($opp->assignee?->name ?? '') . '</td>';
+            $html .= '</tr>';
+        }
+        
+        $html .= '</tbody></table></body></html>';
+        
+        $filename = strtolower(str_replace(' ', '-', $title)) . '_' . now()->format('Y-m-d') . '.pdf';
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download($filename);
     }
 }

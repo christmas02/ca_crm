@@ -8,6 +8,7 @@ use App\Models\Status;
 use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BordereauController extends Controller
 {
@@ -701,6 +702,550 @@ class BordereauController extends Controller
         return view('bordereaux.agents-terrain', compact(
             'metriques', 'dateDebut', 'dateFin'
         ));
+    }
+
+    /**
+     * Exporte les données de conseil en PDF ou Excel
+     */
+    public function exportConseil(Request $request)
+    {
+        // Contrôler l'accès
+        $user = $request->user();
+        if (!$user->isLead() && !$user->isAdmin()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $format = $request->query('format', 'excel');
+        
+        // Récupérer les filtres de date
+        if ($request->filled('date_specifique')) {
+            $dateDebut = Carbon::parse($request->date_specifique)->startOfDay();
+            $dateFin = Carbon::parse($request->date_specifique)->endOfDay();
+        } else {
+            $dateDebut = $request->filled('date_debut') ? Carbon::parse($request->date_debut) : Carbon::now()->startOfMonth();
+            $dateFin = $request->filled('date_fin') ? Carbon::parse($request->date_fin) : Carbon::now()->endOfDay();
+        }
+
+        // Récupérer les conseillers
+        $conseillers = User::with('role')
+            ->whereHas('role', function($query) {
+                $query->whereIn('slug', ['agent_conseil', 'agent_conseil_renouvellement']);
+            })
+            ->where('actif', true)
+            ->get();
+
+        // Enrichir avec les métriques
+        $donnees = $conseillers->map(function ($conseiller) use ($dateDebut, $dateFin) {
+            return $this->calculerMetriques($conseiller, $dateDebut, $dateFin);
+        });
+
+        if ($format === 'excel') {
+            return $this->exportToExcel($donnees, $dateDebut, $dateFin);
+        } elseif ($format === 'pdf') {
+            return $this->exportToPdf($donnees, $dateDebut, $dateFin);
+        }
+
+        abort(400, 'Format invalide');
+    }
+
+    /**
+     * Exporte en Excel (CSV)
+     */
+    private function exportToExcel($donnees, $dateDebut, $dateFin)
+    {
+        $filename = 'metriques_conseillers_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.csv';
+        
+        $headers = array(
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+
+        $callback = function() use ($donnees) {
+            $file = fopen('php://output', 'w');
+            
+            // En-têtes
+            fputcsv($file, array(
+                'Nom du conseiller',
+                'Opp. du jour',
+                'Opp. Traitées',
+                'Renouvellement',
+                'Opp. gagnées',
+                'Score',
+                'Taux conversion (%)'
+            ), ';');
+
+            // Données
+            foreach ($donnees as $row) {
+                fputcsv($file, array(
+                    $row['nom'],
+                    $row['opp_jour'],
+                    $row['opp_modifiees'],
+                    $row['total_renouvellement'],
+                    $row['opp_gagnees'],
+                    $row['score'],
+                    round($row['taux_conversion'] * 100, 2)
+                ), ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exporte en PDF
+     */
+    private function exportToPdf($donnees, $dateDebut, $dateFin)
+    {
+        $filename = 'metriques_conseillers_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.pdf';
+        
+        // Rendre la vue HTML
+        $html = view('pdf.conseil', [
+            'donnees' => $donnees,
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin
+        ])->render();
+        
+        // Générer le PDF avec DomPDF
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Exporte les contrats gagnés en PDF ou Excel
+     */
+    public function exportContratsGagnes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->isLead() && !$user->isAdmin()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $format = $request->query('format', 'excel');
+        
+        $dateDebut = $request->filled('date_debut') ? Carbon::parse($request->date_debut) : Carbon::now()->startOfMonth();
+        $dateFin = $request->filled('date_fin') ? Carbon::parse($request->date_fin) : Carbon::now()->endOfDay();
+        $statusGagne = Status::where('slug', 'gagne')->first();
+
+        $conseillers = User::with('role')
+            ->whereHas('role', function($query) {
+                $query->whereIn('slug', ['agent_conseil', 'agent_conseil_renouvellement']);
+            })
+            ->where('actif', true)
+            ->get();
+
+        $donnees = $conseillers->map(function ($conseiller) use ($dateDebut, $dateFin, $statusGagne) {
+            return $this->calculerMetriquesContratsGagnes($conseiller, $dateDebut, $dateFin, $statusGagne);
+        })->filter(fn($item) => !empty($item));
+
+        if ($format === 'excel') {
+            return $this->exportCSV($donnees, $dateDebut, $dateFin, 'contrats-gagnes');
+        } else {
+            return $this->exportSimplePDF($donnees, $dateDebut, $dateFin, 'Contrats Gagnés par Conseiller');
+        }
+    }
+
+    /**
+     * Calcul des métriques pour contrats gagnés
+     */
+    private function calculerMetriquesContratsGagnes($conseiller, $dateDebut, $dateFin, $statusGagne)
+    {
+        $opp_traite = Opportunity::where(function($query) use ($conseiller, $dateDebut, $dateFin) {
+            $query->where(function($q) use ($conseiller, $dateDebut, $dateFin) {
+                $q->where('assigned_to', $conseiller->id)
+                  ->whereBetween('created_at', [$dateDebut, $dateFin]);
+            })
+            ->orWhereHas('assignments', function($subQuery) use ($conseiller, $dateDebut, $dateFin) {
+                $subQuery->where('assigned_to', $conseiller->id)
+                         ->whereBetween('date_affect', [$dateDebut, $dateFin]);
+            });
+        })->distinct()->count();
+
+        $contrats_renouveles = \App\Models\Contract::where('created_by', $conseiller->id)
+            ->whereBetween('created_at', [$dateDebut, $dateFin])
+            ->whereHas('opportunity', function($query) use ($statusGagne) {
+                $query->where('status_id', $statusGagne?->id);
+            })
+            ->where('contract_number', 'LIKE', 'CTR-%-%')
+            ->count();
+
+        $contrats_nouveaux = \App\Models\Contract::where('created_by', $conseiller->id)
+            ->whereBetween('created_at', [$dateDebut, $dateFin])
+            ->whereHas('opportunity', function($query) use ($statusGagne) {
+                $query->where('status_id', $statusGagne?->id);
+            })
+            ->where('contract_number', 'LIKE', 'CTR-%')
+            ->whereRaw("contract_number NOT LIKE 'CTR-%--%'")
+            ->count();
+
+        $total_opp = Opportunity::where(function($query) use ($conseiller) {
+            $query->where('assigned_to', $conseiller->id)
+                  ->orWhereHas('assignments', function($q) use ($conseiller) {
+                      $q->where('assigned_to', $conseiller->id);
+                  });
+        })->distinct()->count();
+
+        $contrats = \App\Models\Contract::where('created_by', $conseiller->id)
+            ->whereBetween('created_at', [$dateDebut, $dateFin])
+            ->whereHas('opportunity', function($query) use ($statusGagne) {
+                $query->where('status_id', $statusGagne?->id);
+            })
+            ->get(['net_premium', 'ttc_premium']);
+
+        $total_contrats = $contrats_renouveles + $contrats_nouveaux;
+        $score = round(($contrats_renouveles / 3) + $contrats_nouveaux, 2);
+        $taux_affectees = $total_opp > 0 ? round(($opp_traite / $total_opp) * 100, 2) : 0;
+        $taux_traitees = $total_opp > 0 ? round(($opp_traite / $total_opp) * 100, 2) : 0;
+        $taux_conversion = $opp_traite > 0 ? round(($total_contrats / $opp_traite) * 100, 2) : 0;
+
+        return [
+            'nom' => $conseiller->name,
+            'opp_traite' => $opp_traite,
+            'contrat_nouveau' => $contrats_nouveaux,
+            'contrat_renouveller' => $contrats_renouveles,
+            'score' => $score,
+            'taux_affectees' => $taux_affectees,
+            'taux_traitees' => $taux_traitees,
+            'taux_conversion' => $taux_conversion,
+            'prime_nette' => $contrats->sum('net_premium') ?? 0,
+            'prime_ttc' => $contrats->sum('ttc_premium') ?? 0,
+            'prime_moyenne' => $total_contrats > 0 ? ($contrats->sum('net_premium') ?? 0) / $total_contrats : 0,
+        ];
+    }
+
+    /**
+     * Exporte les contrats gagnés par équipe
+     */
+    public function exportContratsGagnesEquipe(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->isLead() && !$user->isAdmin()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $format = $request->query('format', 'excel');
+        
+        $dateDebut = $request->filled('date_debut') ? Carbon::parse($request->date_debut) : Carbon::now()->startOfMonth();
+        $dateFin = $request->filled('date_fin') ? Carbon::parse($request->date_fin) : Carbon::now()->endOfDay();
+        $statusGagne = Status::where('slug', 'gagne')->first();
+
+        $teams = \App\Models\Team::with(['users' => function($q) {
+            $q->where('actif', true);
+        }])->get();
+
+        $donnees = $teams->map(function ($team) use ($dateDebut, $dateFin, $statusGagne) {
+            $memberIds = $team->users->pluck('id')->toArray();
+            
+            if (empty($memberIds)) {
+                return null;
+            }
+
+            $opp_traite = Opportunity::where(function($query) use ($memberIds, $dateDebut, $dateFin) {
+                $query->where(function($q) use ($memberIds, $dateDebut, $dateFin) {
+                    $q->whereIn('assigned_to', $memberIds)
+                      ->whereBetween('created_at', [$dateDebut, $dateFin]);
+                })
+                ->orWhereHas('assignments', function($subQuery) use ($memberIds, $dateDebut, $dateFin) {
+                    $subQuery->whereIn('assigned_to', $memberIds)
+                             ->whereBetween('date_affect', [$dateDebut, $dateFin]);
+                });
+            })->distinct()->count();
+
+            $contrats_renouveles = \App\Models\Contract::whereIn('created_by', $memberIds)
+                ->whereBetween('created_at', [$dateDebut, $dateFin])
+                ->whereHas('opportunity', function($query) use ($statusGagne) {
+                    $query->where('status_id', $statusGagne?->id);
+                })
+                ->where('contract_number', 'LIKE', 'CTR-%-%')
+                ->count();
+
+            $contrats_nouveaux = \App\Models\Contract::whereIn('created_by', $memberIds)
+                ->whereBetween('created_at', [$dateDebut, $dateFin])
+                ->whereHas('opportunity', function($query) use ($statusGagne) {
+                    $query->where('status_id', $statusGagne?->id);
+                })
+                ->where('contract_number', 'LIKE', 'CTR-%')
+                ->whereRaw("contract_number NOT LIKE 'CTR-%--%'")
+                ->count();
+
+            $total_opp = Opportunity::where(function($query) use ($memberIds) {
+                $query->whereIn('assigned_to', $memberIds)
+                      ->orWhereHas('assignments', function($q) use ($memberIds) {
+                          $q->whereIn('assigned_to', $memberIds);
+                      });
+            })->distinct()->count();
+
+            $contrats = \App\Models\Contract::whereIn('created_by', $memberIds)
+                ->whereBetween('created_at', [$dateDebut, $dateFin])
+                ->whereHas('opportunity', function($query) use ($statusGagne) {
+                    $query->where('status_id', $statusGagne?->id);
+                })
+                ->get(['net_premium', 'ttc_premium']);
+
+            $total_contrats = $contrats_renouveles + $contrats_nouveaux;
+            $score = round(($contrats_renouveles / 3) + $contrats_nouveaux, 2);
+            $taux_affectees = $total_opp > 0 ? round(($opp_traite / $total_opp) * 100, 2) : 0;
+            $taux_traitees = $total_opp > 0 ? round(($opp_traite / $total_opp) * 100, 2) : 0;
+            $taux_conversion = $opp_traite > 0 ? round(($total_contrats / $opp_traite) * 100, 2) : 0;
+
+            return [
+                'nom' => $team->name,
+                'opp_traite' => $opp_traite,
+                'contrat_nouveau' => $contrats_nouveaux,
+                'contrat_renouveller' => $contrats_renouveles,
+                'score' => $score,
+                'taux_affectees' => $taux_affectees,
+                'taux_traitees' => $taux_traitees,
+                'taux_conversion' => $taux_conversion,
+                'prime_nette' => $contrats->sum('net_premium') ?? 0,
+                'prime_ttc' => $contrats->sum('ttc_premium') ?? 0,
+                'prime_moyenne' => $total_contrats > 0 ? ($contrats->sum('net_premium') ?? 0) / $total_contrats : 0,
+            ];
+        })->filter(fn($item) => $item !== null);
+
+        if ($format === 'excel') {
+            return $this->exportCSV($donnees, $dateDebut, $dateFin, 'contrats-gagnes-equipe');
+        } else {
+            return $this->exportSimplePDF($donnees, $dateDebut, $dateFin, 'Contrats Gagnés par Équipe');
+        }
+    }
+
+    /**
+     * Exporte les stats comparatives
+     */
+    public function exportStatsComparatives(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->isLead() && !$user->isAdmin()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $format = $request->query('format', 'excel');
+        
+        $p1_debut = $request->filled('p1_debut') ? Carbon::parse($request->p1_debut) : Carbon::now()->subMonth()->startOfMonth();
+        $p1_fin = $request->filled('p1_fin') ? Carbon::parse($request->p1_fin) : Carbon::now()->subMonth()->endOfMonth();
+        $p2_debut = $request->filled('p2_debut') ? Carbon::parse($request->p2_debut) : Carbon::now()->startOfMonth();
+        $p2_fin = $request->filled('p2_fin') ? Carbon::parse($request->p2_fin) : Carbon::now()->endOfDay();
+
+        $filename = 'stats-comparatives_' . $p1_debut->format('Y-m-d') . '_' . $p1_fin->format('Y-m-d') . '_vs_' . $p2_debut->format('Y-m-d') . '_' . $p2_fin->format('Y-m-d');
+
+        if ($format === 'excel') {
+            return $this->exportCSVStatsComparatives($p1_debut, $p1_fin, $p2_debut, $p2_fin, $filename);
+        } else {
+            return $this->exportPDFStatsComparatives($p1_debut, $p1_fin, $p2_debut, $p2_fin, $filename);
+        }
+    }
+
+    /**
+     * Exporte les agents terrain
+     */
+    public function exportAgentsTerrain(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->isLead() && !$user->isAdmin()) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $format = $request->query('format', 'excel');
+        
+        $dateDebut = $request->filled('date_debut') ? Carbon::parse($request->date_debut) : Carbon::now()->startOfMonth();
+        $dateFin = $request->filled('date_fin') ? Carbon::parse($request->date_fin) : Carbon::now()->endOfDay();
+
+        // Appel la même logique que agentsTerrain() pour récupérer les métriques
+        // Cette partie aurait besoin d'être refactorisée mais pour l'instant retournons un simple CSV
+        
+        if ($format === 'excel') {
+            return $this->exportSimpleCSVAgentsTerrain($dateDebut, $dateFin);
+        } else {
+            return $this->exportSimplePDFAgentsTerrain($dateDebut, $dateFin);
+        }
+    }
+
+    /**
+     * Exporte en CSV générique
+     */
+    private function exportCSV($donnees, $dateDebut, $dateFin, $name)
+    {
+        $filename = $name . '_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.csv';
+        
+        $headers = array(
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+
+        $callback = function() use ($donnees) {
+            $file = fopen('php://output', 'w');
+            
+            fputcsv($file, array(
+                'Nom',
+                'Opp Traité',
+                'Contrat Nouveau',
+                'Contrat Renouvellement',
+                'Score',
+                'Taux Affectées (%)',
+                'Taux Traitées (%)',
+                'Taux Conversion (%)',
+                'Prime Nette',
+                'Prime TTC',
+                'Prime Moyenne'
+            ), ';');
+
+            foreach ($donnees as $row) {
+                fputcsv($file, array(
+                    $row['nom'],
+                    $row['opp_traite'],
+                    $row['contrat_nouveau'],
+                    $row['contrat_renouveller'],
+                    round($row['score'], 2),
+                    round($row['taux_affectees'], 2),
+                    round($row['taux_traitees'], 2),
+                    round($row['taux_conversion'], 2),
+                    round($row['prime_nette'], 2),
+                    round($row['prime_ttc'], 2),
+                    round($row['prime_moyenne'], 2)
+                ), ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exporte PDF générique simple
+     */
+    private function exportSimplePDF($donnees, $dateDebut, $dateFin, $title)
+    {
+        $html = '<html><head><meta charset="UTF-8"><style>';
+        $html .= 'body { font-family: Arial, sans-serif; margin: 20px; }';
+        $html .= 'h1 { text-align: center; color: #1f2937; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }';
+        $html .= 'table { width: 100%; border-collapse: collapse; margin-top: 20px; }';
+        $html .= 'th { background-color: #3b82f6; color: white; padding: 10px; text-align: left; }';
+        $html .= 'td { padding: 8px; border: 1px solid #ddd; }';
+        $html .= 'tr:nth-child(even) { background-color: #f9f9f9; }';
+        $html .= '.date-info { text-align: center; color: #666; margin-bottom: 20px; }';
+        $html .= '</style></head><body>';
+        
+        $html .= '<h1>' . $title . '</h1>';
+        $html .= '<div class="date-info">Période: ' . $dateDebut->format('d/m/Y') . ' - ' . $dateFin->format('d/m/Y') . '</div>';
+        
+        $html .= '<table>';
+        $html .= '<thead><tr><th>Nom</th><th>Opp Traité</th><th>Contrat Nouveau</th><th>Contrat RN</th><th>Score</th><th>Taux Conv%</th><th>Prime Nette</th><th>Prime TTC</th></tr></thead><tbody>';
+        
+        foreach ($donnees as $row) {
+            $html .= '<tr><td>' . $row['nom'] . '</td><td>' . $row['opp_traite'] . '</td><td>' . $row['contrat_nouveau'] . '</td><td>' . $row['contrat_renouveller'] . '</td><td>' . round($row['score'], 2) . '</td><td>' . round($row['taux_conversion'], 2) . '%</td><td>' . round($row['prime_nette'], 2) . '</td><td>' . round($row['prime_ttc'], 2) . '</td></tr>';
+        }
+        
+        $html .= '</tbody></table></body></html>';
+        
+        $filename = strtolower(str_replace(' ', '-', $title)) . '_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.pdf';
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Exporte CSV stats comparatives
+     */
+    private function exportCSVStatsComparatives($p1_debut, $p1_fin, $p2_debut, $p2_fin, $filename)
+    {
+        $filename .= '.csv';
+        $headers = array(
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+
+        $callback = function() use ($p1_debut, $p1_fin, $p2_debut, $p2_fin) {
+            $file = fopen('php://output', 'w');
+            
+            fputcsv($file, array(
+                'Métrique',
+                'Période 1 (' . $p1_debut->format('d/m/Y') . ' - ' . $p1_fin->format('d/m/Y') . ')',
+                'Période 2 (' . $p2_debut->format('d/m/Y') . ' - ' . $p2_fin->format('d/m/Y') . ')',
+                'Évolution (%)'
+            ), ';');
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exporte PDF stats comparatives
+     */
+    private function exportPDFStatsComparatives($p1_debut, $p1_fin, $p2_debut, $p2_fin, $filename)
+    {
+        $html = '<html><head><meta charset="UTF-8"><style>';
+        $html .= 'body { font-family: Arial, sans-serif; margin: 20px; }';
+        $html .= 'h1 { text-align: center; color: #1f2937; border-bottom: 2px solid #8b5cf6; padding-bottom: 10px; }';
+        $html .= 'table { width: 100%; border-collapse: collapse; margin-top: 20px; }';
+        $html .= 'th { background-color: #8b5cf6; color: white; padding: 10px; text-align: left; }';
+        $html .= 'td { padding: 8px; border: 1px solid #ddd; }';
+        $html .= 'tr:nth-child(even) { background-color: #f9f9f9; }';
+        $html .= '</style></head><body>';
+        
+        $html .= '<h1>Comparaison de Périodes</h1>';
+        $html .= '<p>Période 1: ' . $p1_debut->format('d/m/Y') . ' - ' . $p1_fin->format('d/m/Y') . '</p>';
+        $html .= '<p>Période 2: ' . $p2_debut->format('d/m/Y') . ' - ' . $p2_fin->format('d/m/Y') . '</p>';
+        
+        $html .= '</body></html>';
+        
+        $filename .= '.pdf';
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Exporte CSV agents terrain
+     */
+    private function exportSimpleCSVAgentsTerrain($dateDebut, $dateFin)
+    {
+        $filename = 'agents-terrain_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.csv';
+        
+        $headers = array(
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, array('Agent', 'Métrique', 'Valeur'), ';');
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exporte PDF agents terrain
+     */
+    private function exportSimplePDFAgentsTerrain($dateDebut, $dateFin)
+    {
+        $html = '<html><head><meta charset="UTF-8"><style>';
+        $html .= 'body { font-family: Arial, sans-serif; margin: 20px; }';
+        $html .= 'h1 { text-align: center; color: #1f2937; border-bottom: 2px solid #f97316; padding-bottom: 10px; }';
+        $html .= '</style></head><body>';
+        $html .= '<h1>Performance Agents Terrain</h1>';
+        $html .= '<p>Période: ' . $dateDebut->format('d/m/Y') . ' - ' . $dateFin->format('d/m/Y') . '</p>';
+        $html .= '</body></html>';
+        
+        $filename = 'agents-terrain_' . $dateDebut->format('Y-m-d') . '_' . $dateFin->format('Y-m-d') . '.pdf';
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download($filename);
     }
 
 }
